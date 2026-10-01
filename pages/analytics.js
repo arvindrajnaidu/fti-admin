@@ -13,12 +13,7 @@ import { TrendChart } from '../components/data/TrendChart';
 // Trackwork pattern: PageHeader filter options are display strings, used directly.
 // The shared set, plus the two month/quarter-to-date views that only make sense
 // on an analytics surface. Custom stays last.
-const TIME_RANGE_FILTERS = [
-  ...STANDARD_RANGES.filter((r) => r !== 'Custom'),
-  'MTD',
-  'QTD',
-  'Custom',
-];
+const TIME_RANGE_FILTERS = [...STANDARD_RANGES];
 
 // Revenue / LTV arrive from /api/analytics/kpis already in USD, converted per
 // order at each order's own rate (see lib/currency.js).
@@ -115,7 +110,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [environment, setEnvironment] = useState('dev');
-  const [timeRange, setTimeRange] = useState('1 month');
+  const [timeRange, setTimeRange] = useState('Last 7d');
   const [refreshing, setRefreshing] = useState(false);
   const [customRange, setCustomRange] = useState(null);
   const [trendWindow, setTrendWindow] = useState('3m'); // '1m' | '3m' | '1y'

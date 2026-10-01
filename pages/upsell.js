@@ -17,6 +17,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Days back to seed the custom pickers from, per preset, when switching to
 // Custom so the form opens on the range the user was already looking at.
 const SEED_DAYS_BACK = {
+  'Last 3d': 3,
   'Last 7d': 7,
   '1 month': 30,
   '3 months': 90,

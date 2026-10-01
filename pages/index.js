@@ -20,6 +20,7 @@ import { STANDARD_RANGES, isCustomRangeLabel, rangeQueryParams } from '../lib/da
 const DEFAULT_RANGE = 'Last 7d';
 
 const RANGE_DESCRIPTIONS = {
+  'Last 3d': 'the last 3 days',
   'Last 7d': 'the last 7 days',
   '1 month': 'the last 30 days',
   '3 months': 'the last 90 days',
