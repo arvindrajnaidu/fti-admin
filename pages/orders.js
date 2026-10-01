@@ -119,7 +119,7 @@ export default function OrdersPage() {
   const [senderModalPage, setSenderModalPage] = useState(1);
   const [senderOrdersLoading, setSenderOrdersLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [timeRange, setTimeRange] = useState('1 month');
+  const [timeRange, setTimeRange] = useState('Last 3d');
 
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
