@@ -1,0 +1,222 @@
+/* Tailwind v4 (CSS-first config) */
+@import "tailwindcss";
+
+/* Kumo: tailwind preset + component styles */
+@import "@cloudflare/kumo/styles/tailwind";
+@import "@cloudflare/kumo/styles";
+
+/* Tailwind v4 content sources */
+@source "../pages/**/*.{js,jsx,ts,tsx}";
+@source "../components/**/*.{js,jsx,ts,tsx}";
+
+/*
+ * Safelist — Tailwind v4 can't see class names built from template literals
+ * (e.g. `bg-ink-${n}`). These are referenced dynamically by pages/design-test.js
+ * and may appear in future components that iterate palette values.
+ */
+@source inline("bg-ink-0 bg-ink-50 bg-ink-100 bg-ink-200 bg-ink-300 bg-ink-400 bg-ink-500 bg-ink-600 bg-ink-700 bg-ink-800 bg-ink-900 text-ink-0 text-ink-50 text-ink-100 text-ink-200 text-ink-300 text-ink-400 text-ink-500 text-ink-600 text-ink-700 text-ink-800 text-ink-900 border-ink-0 border-ink-50 border-ink-100 border-ink-200 border-ink-300 border-ink-400 border-ink-500 border-ink-600 border-ink-700 border-ink-800 border-ink-900");
+
+/* -------------------------------------------------------------------------- */
+/* Design tokens — verbatim port of trackwork-internal/DESIGN_TOKENS.md.       */
+/* Raw token names (--ink-0, --success-fg, etc.) are preserved so any          */
+/* component code that references `var(--success-fg)` directly also works.     */
+/* -------------------------------------------------------------------------- */
+:root {
+  /* Cool neutral ink ramp — the grayscale the whole UI rides on. */
+  --ink-0:   #ffffff;
+  --ink-50:  #f7f8f9;
+  --ink-100: #eef0f3;
+  --ink-200: #e0e3e8;
+  --ink-300: #c6cbd3;
+  --ink-400: #8c93a0;
+  --ink-500: #636a78;
+  --ink-600: #444b57;
+  --ink-700: #2c323c;
+  --ink-800: #1a1e26;
+  --ink-900: #0b0e14;
+
+  /* Status — calm, not alarming. Three stops each, foreground first. */
+  --success-fg: #0f7a52;
+  --success-bg: #e6f4ec;
+  --warn-fg:    #a05a00;
+  --warn-bg:    #fbf0dc;
+  --danger-fg:  #b42318;
+  --danger-bg:  #fbe8e6;
+
+  /* A single accent hue, used at <5% coverage, only for active state. */
+  --accent:     #3f3ccc;
+  --accent-weak: #eceafb;
+
+  --background: var(--ink-0);
+  --foreground: var(--ink-900);
+}
+
+/*
+ * Tailwind v4 theme bindings. `@theme inline` aliases the raw tokens above
+ * into the `--color-*` / `--font-*` keys Tailwind uses to generate utilities.
+ * The result: `bg-ink-0`, `text-success`, `bg-success-weak`, `bg-accent-weak`,
+ * `font-sans`, `font-mono`, `tracking-micro` etc. behave identically to the
+ * Tailwind v3 config in DESIGN_TOKENS.md.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-ink-0:   var(--ink-0);
+  --color-ink-50:  var(--ink-50);
+  --color-ink-100: var(--ink-100);
+  --color-ink-200: var(--ink-200);
+  --color-ink-300: var(--ink-300);
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-600: var(--ink-600);
+  --color-ink-700: var(--ink-700);
+  --color-ink-800: var(--ink-800);
+  --color-ink-900: var(--ink-900);
+
+  --color-accent:      var(--accent);
+  --color-accent-weak: var(--accent-weak);
+
+  --color-success:      var(--success-fg);
+  --color-success-weak: var(--success-bg);
+  --color-warn:         var(--warn-fg);
+  --color-warn-weak:    var(--warn-bg);
+  --color-danger:       var(--danger-fg);
+  --color-danger-weak:  var(--danger-bg);
+
+  --font-sans: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  --tracking-micro: 0.08em;
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .font-num     { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .tnum         { font-variant-numeric: tabular-nums; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Kumo semantic token overrides — bind Kumo component styling to the ink     */
+/* palette so LayerCard, Banner, Toast, Dialog inherit the design tokens.     */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  :root {
+    --color-kumo-canvas:     var(--ink-0);
+    --color-kumo-base:       var(--ink-0);
+    --color-kumo-elevated:   var(--ink-0);
+    --color-kumo-control:    var(--ink-0);
+
+    --color-kumo-hairline:   var(--ink-100);
+    --color-kumo-line:       var(--ink-200);
+    --color-kumo-fill:       var(--ink-200);
+    --color-kumo-fill-hover: var(--ink-50);
+
+    --color-kumo-default:    var(--ink-900);
+    --color-kumo-strong:     var(--ink-900);
+    --color-kumo-subtle:     var(--ink-500);
+    --color-kumo-contrast:   var(--ink-0);
+
+    /*
+     * Trackwork primary button = bg-ink-900 text-white hover:bg-ink-800.
+     * Kumo's primary Button variant uses bg-kumo-brand, so we bind `brand`
+     * to the ink scale (NOT the accent purple) — per DESIGN_TOKENS.md:
+     * "accent is rare… <5% coverage, only for active state."
+     * The left-nav accent bar uses `bg-accent` directly, unaffected.
+     */
+    --color-kumo-brand:       var(--ink-900);
+    --color-kumo-brand-hover: var(--ink-800);
+    --color-kumo-interact:    var(--accent);
+
+    --color-kumo-success:     var(--success-fg);
+    --color-kumo-warning:     var(--warn-fg);
+    --color-kumo-danger:      var(--danger-fg);
+    --color-kumo-danger-tint: var(--danger-bg);
+    --color-kumo-info:        var(--accent);
+    --color-kumo-info-tint:   var(--accent-weak);
+  }
+
+  /*
+   * Kumo primary button classes `bg-kumo-brand !text-white hover:...` live
+   * inside node_modules (not scanned by Tailwind by default), so the
+   * `!text-white` utility isn't emitted — leaving primary-button text as
+   * inherited ink-900. Force white text on any bg-kumo-brand surface.
+   */
+  .bg-kumo-brand,
+  .bg-kumo-brand:hover,
+  .bg-kumo-brand:focus {
+    color: #ffffff;
+  }
+
+  /*
+   * Trackwork "Export CSV" look applied to Kumo secondary buttons:
+   * white background, hairline border (already via ring-kumo-hairline),
+   * ink-700 text. Kumo ships `!text-kumo-default` but the v3-prefix
+   * important modifier doesn't generate in Tailwind v4, so enforce here.
+   */
+  .bg-kumo-base.ring-kumo-hairline,
+  .ring-kumo-hairline.bg-kumo-base {
+    color: var(--ink-700);
+  }
+
+  /*
+   * Kumo Input renders `border-0 bg-kumo-control ring ring-kumo-hairline`.
+   * Under Tailwind v4 with our overrides, the `ring` utility emits a
+   * box-shadow that's too subtle to read as a border on white backgrounds.
+   * Make it a solid ink-200 border + proper padding so Input is visibly
+   * present and matches the trackwork input treatment.
+   */
+  input.bg-kumo-control,
+  textarea.bg-kumo-control,
+  .bg-kumo-control[role="combobox"] {
+    border: 1px solid var(--ink-200);
+    border-radius: 6px;
+    box-shadow: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ink-900);
+  }
+
+  input.bg-kumo-control::placeholder,
+  textarea.bg-kumo-control::placeholder {
+    color: var(--ink-400);
+  }
+
+  input.bg-kumo-control:focus,
+  textarea.bg-kumo-control:focus,
+  .bg-kumo-control[role="combobox"]:focus-within {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  /*
+   * Kumo Button size="sm" renders too tight under Tailwind v4 because its
+   * padding classes use the v3 `!` prefix. Give all bg-kumo-brand and
+   * bg-kumo-base buttons consistent trackwork padding + height.
+   */
+  button.bg-kumo-brand,
+  button.bg-kumo-base.ring-kumo-hairline {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}

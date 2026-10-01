@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Implementation Plan — WhatsApp Recipient Confirmation (Phase 1)</title>
+<style>
+  :root {
+    --paper:   #FAF8F5;
+    --surface: #FFFFFF;
+    --inset:   #F0EDE8;
+    --oat:     #E3DACC;
+    --border:  #D4CFC7;
+    --ink:     #2D2A26;
+    --ink-2:   #57534E;
+    --muted:   #8A837A;
+    --brand:   #117150;
+    --brand-2: #0d5a40;
+    --clay:    #D97757;
+    --clay-2:  #B8602A;
+    --olive:   #788C5D;
+    --gold:    #D4A84B;
+    --coral:   #C44A2F;
+    --sky:     #6A8CAF;
+    --shadow:  0 1px 2px rgba(45,42,38,.06), 0 4px 12px rgba(45,42,38,.04);
+    --shadow-md: 0 4px 12px rgba(45,42,38,.08), 0 12px 28px rgba(45,42,38,.06);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  header.hero { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  header.hero .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.75rem;
+    color: var(--clay-2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  header.hero h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  header.hero .lede { color: var(--ink-2); font-size: 1rem; max-width: 64ch; margin: 0.5rem 0 1rem; }
+  header.hero .meta { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); }
+  header.hero .meta strong { color: var(--ink-2); font-weight: 600; }
+  header.hero .meta code { font-size: 0.8rem; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.6rem;
+    margin: 2.5rem 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  h2 .num {
+    color: var(--clay);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.85rem;
+    margin-right: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    vertical-align: 0.25em;
+  }
+  h3 { font-size: 1.08rem; margin: 1.5rem 0 0.4rem; font-weight: 600; color: var(--ink); }
+  h4 { font-size: 0.95rem; margin: 1rem 0 0.4rem; color: var(--ink-2); font-weight: 600; }
+  p { margin: 0.4rem 0 0.75rem; color: var(--ink-2); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.86em;
+    background: var(--inset);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  a { color: var(--clay-2); }
+  ul.clean { list-style: none; padding: 0; margin: 0.4rem 0; }
+  ul.clean li { padding: 0.2rem 0 0.2rem 1.1rem; position: relative; color: var(--ink-2); }
+  ul.clean li::before {
+    content: ""; position: absolute; left: 0; top: 0.7rem;
+    width: 6px; height: 6px; background: var(--clay); border-radius: 50%;
+  }
+  ul.check { list-style: none; padding: 0; margin: 0.4rem 0; }
+  ul.check li {
+    padding: 0.3rem 0 0.3rem 1.6rem;
+    position: relative;
+    color: var(--ink-2);
+  }
+  ul.check li::before {
+    content: "✓";
+    position: absolute; left: 0; top: 0.3rem;
+    color: var(--brand); font-weight: 700;
+  }
+
+  /* Banner callouts */
+  .banner {
+    border-radius: var(--radius);
+    padding: 0.9rem 1.15rem;
+    margin: 1rem 0 1.25rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    font-size: 0.93rem;
+  }
+  .banner .icon { font-size: 1.1rem; flex-shrink: 0; line-height: 1.2; }
+  .banner.amber { background: linear-gradient(180deg, #FFF8E6 0%, #FFF4D6 100%); border: 1px solid #F5E0A1; color: #5C4A1A; }
+  .banner.amber strong { color: #422F00; }
+  .banner.green { background: #E6F4EC; border: 1px solid #B4D9C4; color: #0B5436; }
+  .banner.green strong { color: #083B25; }
+  .banner.red   { background: #FEECEA; border: 1px solid #F0B8AB; color: #7A1F0A; }
+
+  /* Pill / badges */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .pill.green   { background: #E6F4EC; color: #0F7A52; }
+  .pill.yellow  { background: #FFF4D6; color: #8C6A14; }
+  .pill.grey    { background: var(--inset); color: var(--muted); }
+  .pill.red     { background: #FEECEA; color: #B33A1A; }
+  .pill.clay    { background: #FBE6DC; color: #B8602A; }
+  .pill.sky     { background: #E3ECF5; color: #34587E; }
+
+  /* Generic card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.4rem;
+    box-shadow: var(--shadow);
+    margin: 0.85rem 0;
+  }
+  .card.inset { background: var(--inset); box-shadow: none; }
+
+  /* Phase card with colored top stripe */
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--clay);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.5rem;
+    margin: 0.85rem 0 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .phase .phase-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .phase .letter {
+    font-family: Georgia, serif;
+    font-size: 1.65rem;
+    color: var(--clay);
+    line-height: 1;
+    font-weight: 600;
+  }
+  .phase .title {
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .phase .sub {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-left: auto;
+    background: var(--inset);
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+  }
+  .phase.a { border-top-color: var(--sky); } .phase.a .letter { color: var(--sky); }
+  .phase.b { border-top-color: var(--clay); } .phase.b .letter { color: var(--clay); }
+  .phase.c { border-top-color: var(--brand); } .phase.c .letter { color: var(--brand); }
+  .phase.d { border-top-color: var(--olive); } .phase.d .letter { color: var(--olive); }
+  .phase.e { border-top-color: var(--gold); } .phase.e .letter { color: #8C6A14; }
+  .phase.f { border-top-color: var(--coral); } .phase.f .letter { color: var(--coral); }
+
+  .phase .files {
+    background: var(--inset);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.85rem;
+    margin: 0.5rem 0;
+    font-size: 0.88rem;
+  }
+  .phase .files .file-row {
+    display: flex; gap: 0.6rem; padding: 0.15rem 0;
+    align-items: baseline;
+  }
+  .phase .files .file-row .tag {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.68rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .phase .files .file-row .tag.new { background: #E6F4EC; color: #0F7A52; }
+  .phase .files .file-row .tag.mod { background: #FFF4D6; color: #8C6A14; }
+  .phase .files .file-row code { background: transparent; padding: 0; color: var(--ink); }
+  .phase .files .file-row .note { color: var(--muted); font-size: 0.85rem; }
+
+  /* Branch / repo callout */
+  .branches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin: 0.85rem 0 1.5rem;
+  }
+  @media (max-width: 700px) { .branches { grid-template-columns: 1fr; } }
+  .branch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.95rem 1.15rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .branch-card .repo {
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+    color: var(--clay-2);
+    font-weight: 600;
+  }
+  .branch-card .br {
+    font-family: ui-monospace, monospace;
+    font-size: 1rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .branch-card .off {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Mini flow diagram */
+  .flow-wrap {
+    background: var(--inset);
+    border-radius: var(--radius);
+    padding: 1.25rem 1rem 0.5rem;
+    margin: 1rem 0 1.5rem;
+    overflow-x: auto;
+  }
+  .flow-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+  .flow-wrap figcaption {
+    text-align: center;
+    margin: 0.5rem 0 0.25rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.65rem 0 1rem;
+    font-size: 0.91rem;
+  }
+  thead th {
+    background: var(--inset);
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    color: var(--ink-2);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  tbody td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Stats grid */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin: 0 0 1.5rem;
+  }
+  .stat {
+    display: flex; flex-direction: column;
+    padding: 0.75rem 0.95rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    gap: 0.15rem;
+  }
+  .stat .n {
+    font-family: Georgia, serif; font-size: 1.55rem;
+    font-weight: 600; color: var(--ink); line-height: 1;
+  }
+  .stat .l {
+    font-size: 0.74rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+  }
+
+  /* Code block */
+  pre.code {
+    background: #1F1B18;
+    color: #E3DACC;
+    border-radius: var(--radius);
+    padding: 0.95rem 1.15rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 0.65rem 0 1rem;
+  }
+  pre.code .k { color: #ABDB6E; }
+  pre.code .t { color: #FF9D7A; }
+  pre.code .c { color: #8A837A; }
+</style>
+</head>
+<body>
+
+<main>
+
+  <header class="hero">
+    <div class="eyebrow">Implementation Plan · Phase 1 · ~2 days</div>
+    <h1>WhatsApp Recipient Confirmation</h1>
+    <p class="lede">
+      Cross-app build across <code>admin/</code> and <code>foodtoindia/</code>:
+      a one-click WhatsApp deep-link in the dispatch queue + a public
+      confirmation page where recipients verify address &amp; pick a
+      delivery time. State on the order doc, addresses accumulating in a
+      new global profile collection.
+    </p>
+    <div class="meta">
+      <span><strong>Spec</strong> <a href="../../admin/docs/FoodToIndia_WhatsApp_Confirmation_Spec.html">FoodToIndia_WhatsApp_Confirmation_Spec.html</a></span>
+      <span><strong>Decisions log</strong> <a href="../../admin/docs/implementation-notes.html">implementation-notes.html</a></span>
+      <span><strong>Scope</strong> Parts 1–3 + Part 4 (write-only)</span>
+    </div>
+  </header>
+
+  <!-- AT A GLANCE -->
+  <section>
+    <div class="stats">
+      <div class="stat"><span class="n">6</span><span class="l">Phases</span></div>
+      <div class="stat"><span class="n">~14</span><span class="l">New / modified files</span></div>
+      <div class="stat"><span class="n">2</span><span class="l">Apps · 1 Firestore</span></div>
+      <div class="stat"><span class="n">2</span><span class="l">Build days</span></div>
+    </div>
+  </section>
+
+  <!-- BRANCHES -->
+  <section>
+    <h2><span class="num">00</span>Branches</h2>
+    <div class="branches">
+      <div class="branch-card">
+        <span class="repo">foodtoindia/</span>
+        <span class="br">athahar/whatsapp-confirmation</span>
+        <span class="off">off <code>stage</code></span>
+      </div>
+      <div class="branch-card">
+        <span class="repo">admin/</span>
+        <span class="br">athahar/whatsapp-confirmation</span>
+        <span class="off">off <code>main</code></span>
+      </div>
+    </div>
+    <p style="font-size:0.9rem; color:var(--muted)">
+      Same branch name in both repos so a grep across the workspace finds
+      the matching feature work.
+    </p>
+  </section>
+
+  <!-- FLOW -->
+  <section>
+    <h2><span class="num">01</span>What we're wiring up</h2>
+    <div class="flow-wrap">
+      <svg viewBox="0 0 880 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Build phases flow">
+        <defs>
+          <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8A837A"/>
+          </marker>
+        </defs>
+        <g font-family="-apple-system, system-ui, sans-serif" font-size="12.5" fill="#2D2A26">
+          <!-- Phase A foundations -->
+          <rect x="20"  y="60"  width="120" height="56" rx="10" fill="#E3ECF5" stroke="#6A8CAF"/>
+          <text x="80"  y="84"  text-anchor="middle" font-weight="700">A · Foundations</text>
+          <text x="80"  y="102" text-anchor="middle" fill="#34587E" font-size="10.5">templates + utils</text>
+          <!-- B Admin button -->
+          <rect x="170" y="60"  width="120" height="56" rx="10" fill="#FBE6DC" stroke="#D97757"/>
+          <text x="230" y="84"  text-anchor="middle" font-weight="700">B · WA button</text>
+          <text x="230" y="102" text-anchor="middle" fill="#B8602A" font-size="10.5">admin</text>
+          <!-- C Confirmation page -->
+          <rect x="320" y="60"  width="140" height="56" rx="10" fill="#E6F4EC" stroke="#117150"/>
+          <text x="390" y="84"  text-anchor="middle" font-weight="700">C · Confirm page</text>
+          <text x="390" y="102" text-anchor="middle" fill="#0F7A52" font-size="10.5">foodtoindia</text>
+          <!-- D Dispatch -->
+          <rect x="490" y="60"  width="130" height="56" rx="10" fill="#EEF1E3" stroke="#788C5D"/>
+          <text x="555" y="84"  text-anchor="middle" font-weight="700">D · Dispatch UI</text>
+          <text x="555" y="102" text-anchor="middle" fill="#4D6B36" font-size="10.5">admin</text>
+          <!-- E Profile writes -->
+          <rect x="650" y="60"  width="100" height="56" rx="10" fill="#FFF4D6" stroke="#D4A84B"/>
+          <text x="700" y="84"  text-anchor="middle" font-weight="700">E · Profile</text>
+          <text x="700" y="102" text-anchor="middle" fill="#8C6A14" font-size="10.5">write-only</text>
+          <!-- F Email -->
+          <rect x="780" y="60"  width="80" height="56" rx="10" fill="#FEECEA" stroke="#C44A2F"/>
+          <text x="820" y="84"  text-anchor="middle" font-weight="700">F · Email</text>
+          <text x="820" y="102" text-anchor="middle" fill="#B33A1A" font-size="10.5">resend</text>
+
+          <line x1="140" y1="88" x2="166" y2="88" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr3)"/>
+          <line x1="290" y1="88" x2="316" y2="88" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr3)"/>
+          <line x1="460" y1="88" x2="486" y2="88" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr3)"/>
+          <line x1="620" y1="88" x2="646" y2="88" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr3)"/>
+          <line x1="750" y1="88" x2="776" y2="88" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr3)"/>
+
+          <text x="20" y="40" font-weight="700" font-size="13.5">Build order</text>
+          <text x="20" y="56" fill="#8A837A" font-size="11">Sequential — each phase ends with green build before the next.</text>
+
+          <text x="20" y="160" fill="#8A837A" font-size="11">Foundations are shared utilities. B–D are the user-visible work.</text>
+          <text x="20" y="178" fill="#8A837A" font-size="11">E happens implicitly inside C &amp; D writes. F is the only async tail.</text>
+        </g>
+      </svg>
+      <figcaption>Six phases, two apps. Sequential — green build gate between phases.</figcaption>
+    </div>
+  </section>
+
+  <!-- PHASE A -->
+  <section>
+    <h2><span class="num">02</span>Phases</h2>
+
+    <div class="phase a">
+      <div class="phase-head">
+        <span class="letter">A</span>
+        <span class="title">Shared foundations</span>
+        <span class="sub">pure utilities · no UI</span>
+      </div>
+      <div class="files">
+        <div class="file-row"><span class="tag new">NEW</span><code>foodtoindia/lib/whatsappTemplates.js</code><span class="note">message-template selector + builder; 6 variants from spec §1</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>foodtoindia/lib/recipientProfile.js</code><span class="note">path constants &amp; helpers for <code>recipients/{phoneE164}</code></span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/lib/whatsappTemplates.js</code><span class="note">MIRROR of foodtoindia's; kept in sync via header comment</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/lib/recipientProfile.js</code><span class="note">MIRROR</span></div>
+      </div>
+      <p>
+        <code>buildMessage({ recipient, sender, restaurant, scheduledFor,
+        confirmationUrl, hasFullAddress, hasTime, hasProfile })</code> → string.
+        Pure function. English only.
+      </p>
+      <div class="banner amber" style="margin-bottom:0">
+        <div class="icon">⚠</div>
+        <div><strong>Why mirror, not share:</strong> the two repos have no code-sharing path (no npm-link / monorepo). Two ~150-line files, low churn, mirrored with a header comment. Adding a shared package is more change than this feature warrants.</div>
+      </div>
+    </div>
+
+    <!-- PHASE B -->
+    <div class="phase b">
+      <div class="phase-head">
+        <span class="letter">B</span>
+        <span class="title">Admin WhatsApp button (Part 1)</span>
+        <span class="sub">admin/pages/orders.js</span>
+      </div>
+      <div class="files">
+        <div class="file-row"><span class="tag mod">MOD</span><code>admin/pages/orders.js</code><span class="note">+ WA icon button in action group (lines 1015–1039 area)</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/pages/api/whatsapp/log-sent.js</code><span class="note">writes <code>recipientContact</code> on the order doc</span></div>
+      </div>
+      <h4>Click handler</h4>
+      <ul class="check">
+        <li>Generate <code>crypto.randomUUID()</code> if no token exists. <strong>Re-use existing token</strong> if already set (per impl-notes decision).</li>
+        <li>Build URL: <code>https://foodtoindia.com/confirm/${orderId}?token=${token}</code>.</li>
+        <li>Pick message variant from <code>buildMessage(...)</code>. Phase 1 always passes <code>hasProfile = false</code>.</li>
+        <li>Open <code>wa.me/${phoneNoPlus}?text=${encoded}</code> in a new tab.</li>
+        <li>POST <code>/api/whatsapp/log-sent</code> to write the doc. Invalidate <code>global.ordersCache</code>.</li>
+      </ul>
+      <h4>Button visual states</h4>
+      <ul class="clean">
+        <li><strong>Default:</strong> green WA icon, tooltip "Send WhatsApp confirmation"</li>
+        <li><strong><code>status === 'pending'</code>:</strong> yellow border, tooltip "Re-send (sent at HH:mm)"</li>
+        <li><strong><code>recipientPhoneIsWhatsApp === false</code>:</strong> same icon, tooltip "Recipient marked as no WhatsApp — call instead"</li>
+        <li><strong><code>status === 'confirmed'</code>:</strong> subtle green check overlay, tooltip "Confirmed at HH:mm"</li>
+      </ul>
+      <h4>Status badge on the row</h4>
+      <p>Extend <code>statusTone</code> mapping. Render a <em>second</em> Pill in the status column showing recipientContact state alongside the existing dispatch status.</p>
+      <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin:0.5rem 0">
+        <span class="pill green">Ready</span>
+        <span class="pill green">Confirmed</span>
+        <span class="pill yellow">WA sent</span>
+        <span class="pill grey">Pending</span>
+        <span class="pill red">No response</span>
+      </div>
+    </div>
+
+    <!-- PHASE C -->
+    <div class="phase c">
+      <div class="phase-head">
+        <span class="letter">C</span>
+        <span class="title">Confirmation page (Part 2)</span>
+        <span class="sub">foodtoindia/pages/confirm</span>
+      </div>
+      <div class="files">
+        <div class="file-row"><span class="tag new">NEW</span><code>foodtoindia/pages/confirm/[orderId].js</code><span class="note">public, no <code>Authenticated</code> wrapper</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>foodtoindia/pages/api/confirm-order-lookup.js</code><span class="note">POST {orderId, token} → projected order</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>foodtoindia/pages/api/confirm-order.js</code><span class="note">POST {orderId, token, address, scheduledFor} → writes</span></div>
+      </div>
+      <h4>Lookup &amp; validation</h4>
+      <ul class="check">
+        <li><code>db.collectionGroup('orders').where('__name__', '==', orderId)</code> — same pattern as <code>scripts/_check-order-recipient.js</code></li>
+        <li>Validate <code>token</code> matches <code>recipientContact.confirmToken</code>; reject mismatched with 401</li>
+        <li>Project only customer-facing fields back (no uid, no Stripe internals)</li>
+        <li>Render state: invalid-token, already-processed, already-confirmed, pending</li>
+      </ul>
+      <h4>Submit writes (batch)</h4>
+      <ul class="clean">
+        <li>Order doc: <code>recipientContact.{status:'confirmed', confirmedAt, confirmedAddress, confirmedTimeSlot, timeChanged}</code></li>
+        <li>If <code>timeChanged</code>: <code>recipientContact.pendingSenderNotification = true</code></li>
+        <li>Profile upsert at <code>recipients/&#123;phoneE164&#125;</code></li>
+      </ul>
+      <h4>Form UI (mobile-first, single column)</h4>
+      <ul class="clean">
+        <li>Header: "<em>X is sending you food from Y</em>" + item list (names only)</li>
+        <li>Address: 4 visible fields (doorFlat, street, landmark, area) + collapsed "More" for city/state/pincode</li>
+        <li>Time: "This works / I need a different time" if sender chose; else slot picker direct</li>
+        <li>Slot picker re-uses <code>lib/scheduling.js</code> — 30-min IST slots, 2-h buffer, ASAP only when <code>isWithinOpsHours(now)</code></li>
+      </ul>
+      <h4>PostHog events</h4>
+      <p>
+        <code>confirmation_page_viewed</code> · <code>confirmation_submitted</code> · <code>confirmation_time_changed</code>
+        via <code>lib/logger.js#logEvent</code>.
+      </p>
+    </div>
+
+    <!-- PHASE D -->
+    <div class="phase d">
+      <div class="phase-head">
+        <span class="letter">D</span>
+        <span class="title">Dispatch enhancements (Part 3)</span>
+        <span class="sub">admin/pages/orders.js</span>
+      </div>
+      <div class="files">
+        <div class="file-row"><span class="tag mod">MOD</span><code>admin/pages/orders.js</code><span class="note">+ Deliver-at column, ops address editor, status pills, soon-cue</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/pages/api/whatsapp/set-deliver-at.js</code><span class="note">POST {userId, orderId, scheduledFor}</span></div>
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/pages/api/whatsapp/set-address.js</code><span class="note">POST {userId, orderId, address} → order + profile</span></div>
+      </div>
+      <ul class="check">
+        <li><strong>"Deliver at" column</strong> — shows <code>recipientContact.confirmedTimeSlot || scheduling.scheduledFor</code>, clickable</li>
+        <li><strong>Edit Deliver-at modal</strong> (using <code>components/layout/Modal.jsx</code>) — single datetime input, IST-displayed</li>
+        <li><strong>Ops address editor modal</strong> — 7-field form, writes to BOTH the order's <code>recipientContact.confirmedAddress</code> AND the profile</li>
+        <li><strong>Sort within sections</strong> by effective deliver-at ascending; untimed orders last</li>
+        <li><strong>Soon-cue</strong> — within 30 min of deliver-at, row gets <code>bg-amber-50</code> background</li>
+      </ul>
+    </div>
+
+    <!-- PHASE E -->
+    <div class="phase e">
+      <div class="phase-head">
+        <span class="letter">E</span>
+        <span class="title">Profile writes (Part 4 write-only)</span>
+        <span class="sub">no separate work</span>
+      </div>
+      <p>
+        Covered by Phase C (confirmation page submits) and Phase D (ops
+        address editor). Profile writes are a side-effect of those writes.
+        Flagged separately to confirm:
+      </p>
+      <ul class="check">
+        <li>Writes <strong>happen</strong>.</li>
+        <li>Reads from profile on incoming orders are <strong>deferred</strong> to phase 2 — <code>pages/api/orders.js</code> in foodtoindia is unchanged.</li>
+      </ul>
+    </div>
+
+    <!-- PHASE F -->
+    <div class="phase f">
+      <div class="phase-head">
+        <span class="letter">F</span>
+        <span class="title">Time-change email (admin sends)</span>
+        <span class="sub">resend · firestore txn</span>
+      </div>
+      <div class="files">
+        <div class="file-row"><span class="tag new">NEW</span><code>admin/pages/api/whatsapp/send-time-change-notification.js</code><span class="note">claim flag in txn → send → log</span></div>
+        <div class="file-row"><span class="tag mod">MOD</span><code>admin/pages/orders.js</code><span class="note">on-load scan, fire-and-forget POST per pending order</span></div>
+      </div>
+      <h4>Atomic claim before send</h4>
+      <pre class="code"><span class="c">// admin/pages/api/whatsapp/send-time-change-notification.js</span>
+await db.<span class="t">runTransaction</span>(async (txn) =&gt; {
+  const snap = await txn.<span class="t">get</span>(orderRef);
+  const data = snap.data();
+  if (data?.recipientContact?.<span class="k">pendingSenderNotification</span> !== <span class="t">true</span>) return null;
+  txn.<span class="t">update</span>(orderRef, {
+    <span class="k">'recipientContact.pendingSenderNotification'</span>: <span class="t">false</span>,
+    <span class="k">'recipientContact.senderNotifiedAt'</span>: admin.firestore.FieldValue.<span class="t">serverTimestamp</span>(),
+  });
+  return data;
+});
+<span class="c">// only one transaction wins → only one email sends</span></pre>
+      <p>
+        Send email via Resend with the existing <code>cancel-order.js</code> shape.
+        From: <code>FoodtoIndia &lt;orders@foodtoindia.com&gt;</code>,
+        Reply-To: <code>support@foodtoindia.com</code>. Inline HTML
+        template — short note showing old → new time + reassurance.
+      </p>
+      <div class="banner green" style="margin-top:0.85rem">
+        <div class="icon">✓</div>
+        <div><strong>No cron needed.</strong> Trigger is on dispatch-queue page load — admin scans the orders response for <code>pendingSenderNotification: true</code> and fires off a POST per order. Transaction guarantees dedupe across simultaneous tabs.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REUSE TABLE -->
+  <section>
+    <h2><span class="num">03</span>Critical files &amp; reuse opportunities</h2>
+    <table>
+      <thead>
+        <tr><th style="width:34%">Need</th><th>Reuse from</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Firebase Admin SDK in foodtoindia API</td><td><code>lib/google.js</code> (<code>{ db }</code>)</td></tr>
+        <tr><td>Firebase Admin SDK in admin API</td><td><code>lib/firebase.js</code> (<code>{ admin, db }</code>)</td></tr>
+        <tr><td>Phone display formatter</td><td><code>foodtoindia/lib/phone.js#formatPhoneForDisplay</code> &middot; <code>admin/lib/phoneFormat.js#formatRecipientPhone</code></td></tr>
+        <tr><td>Phone for <code>wa.me</code> URL</td><td>Strip <code>+</code> from <code>recipient.recipientPhoneE164</code></td></tr>
+        <tr><td>Scheduling helpers</td><td><code>foodtoindia/lib/scheduling.js</code> &mdash; <code>getDateOptions</code>, <code>getSlotsForAnchor</code>, <code>isWithinOpsHours</code>, <code>formatSlotLabel</code>, <code>validateScheduledFor</code></td></tr>
+        <tr><td>Modal UI in admin</td><td><code>admin/components/layout/Modal.jsx</code></td></tr>
+        <tr><td>Status pill component</td><td><code>admin/components/data/DataTable.jsx#Pill</code> &mdash; tones: <code>success</code>, <code>warn</code>, <code>danger</code>, <code>accent</code>, <code>neutral</code></td></tr>
+        <tr><td>Public-page pattern</td><td><code>foodtoindia/pages/unsubscribe.js</code> &mdash; skip <code>Authenticated</code> wrapper entirely</td></tr>
+        <tr><td>Admin API auth</td><td><code>admin/lib/auth.js#requireAuth</code></td></tr>
+        <tr><td>Resend send pattern</td><td><code>admin/pages/api/cancel-order.js</code> lines 93–138</td></tr>
+        <tr><td>PostHog logger</td><td><code>foodtoindia/lib/logger.js#logEvent</code></td></tr>
+        <tr><td>Brand colors</td><td><code>#117150</code> green (FoodToIndia brand) &middot; <code>#D97757</code> clay (accent)</td></tr>
+        <tr><td>Cache invalidation after writes</td><td><code>global.ordersCache = null</code> in admin (existing pattern)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- VERIFICATION -->
+  <section>
+    <h2><span class="num">04</span>Verification</h2>
+    <p>End-to-end test plan, in order. Each phase ends with build-smoke before moving on.</p>
+    <div class="card">
+      <ul class="check">
+        <li><strong>Build smoke:</strong> <code>npm run build</code> in both repos. Must pass after every phase.</li>
+        <li><strong>Template builder:</strong> small script <code>admin/scripts/_test-whatsapp.js</code> prints all 6 variants — eyeball before any UI work.</li>
+        <li><strong>Admin button flow:</strong> click button on a test order. Verify: doc updated, <code>wa.me</code> URL opens correct phone+message, re-click reuses same token.</li>
+        <li><strong>Confirmation page:</strong> paste URL in private window. Verify: loads without auth · form pre-fills · invalid token shows error · submit-same-time writes confirmed status · submit-different-time sets <code>timeChanged</code> &amp; <code>pendingSenderNotification</code>.</li>
+        <li><strong>Email auto-send:</strong> refresh admin dispatch queue. Verify Resend log shows the email; flag cleared in Firestore.</li>
+        <li><strong>Ops address editor:</strong> verify both order doc AND <code>recipients/&#123;phoneE164&#125;</code> are written.</li>
+        <li><strong>Profile accumulates:</strong> after recipient confirms, profile doc exists with <code>addressSource:'recipient_confirmed'</code>.</li>
+        <li><strong>Status badges:</strong> dispatch queue shows correct pill for each state.</li>
+        <li><strong>Phone test:</strong> open the wa.me link on an actual phone — does WhatsApp open with message pre-filled?</li>
+        <li><strong>Mobile confirmation page:</strong> open <code>/confirm/...</code> on mobile — large taps, no horizontal scroll.</li>
+        <li><strong>Off-hours:</strong> mock system clock to 2 AM IST, refresh confirmation page — ASAP gone, slot list starts tomorrow.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- RISKS / OPEN -->
+  <section>
+    <h2><span class="num">05</span>Risks &amp; ambiguities surfaced during build</h2>
+    <p>None blocking. Flag each in <code>implementation-notes.html</code> as it's hit.</p>
+    <div class="card">
+      <ul class="clean">
+        <li><strong>Address parsing of <code>location.formattedAddress</code>:</strong> Phase 1 punts on parsing area/city/state/pincode from the existing comma-string. Confirmation page leaves those fields empty for the recipient.</li>
+        <li><strong>Legacy orders without <code>recipientContact</code>:</strong> UI must handle <code>undefined</code> cleanly — no badge, default button state.</li>
+        <li><strong>Confirmation-page base URL:</strong> <code>https://foodtoindia.com</code> is hardcoded. Add <code>NEXT_PUBLIC_CONFIRMATION_BASE_URL</code> override for dev/stage testing.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- OUT OF SCOPE -->
+  <section>
+    <h2><span class="num">06</span>Out of scope (phase 2 candidates)</h2>
+    <div class="card inset">
+      <ul class="clean">
+        <li>Auto-fill incoming orders from <code>recipients/&#123;phoneE164&#125;</code> profile (spec §4 lookup)</li>
+        <li>WhatsApp Business API / Twilio (spec §"Not included")</li>
+        <li>"No response after 4h" automatic status flip (manual judgment in phase 1)</li>
+        <li>Hindi / Punjabi message variants</li>
+        <li>Cancellation flow from the confirmation page</li>
+        <li>Two-way sync if ops edits address while a confirmation token is pending</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

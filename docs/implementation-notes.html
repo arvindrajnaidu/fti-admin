@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Implementation Notes — WhatsApp Recipient Confirmation</title>
+<style>
+  :root {
+    --paper:   #FAF8F5;
+    --surface: #FFFFFF;
+    --inset:   #F0EDE8;
+    --oat:     #E3DACC;
+    --border:  #D4CFC7;
+    --ink:     #2D2A26;
+    --ink-2:   #57534E;
+    --muted:   #8A837A;
+    --brand:   #117150;
+    --brand-2: #0d5a40;
+    --clay:    #D97757;
+    --clay-2:  #B8602A;
+    --olive:   #788C5D;
+    --gold:    #D4A84B;
+    --gold-2:  #8C6A14;
+    --coral:   #C44A2F;
+    --sky:     #6A8CAF;
+    --shadow:  0 1px 2px rgba(45,42,38,.06), 0 4px 12px rgba(45,42,38,.04);
+    --radius:  12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  main { max-width: 920px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  header.hero { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  header.hero .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.75rem;
+    color: var(--clay-2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  header.hero h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  header.hero .lede { color: var(--ink-2); font-size: 1rem; max-width: 60ch; margin: 0.5rem 0 1rem; }
+  header.hero .meta { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); }
+  header.hero .meta strong { color: var(--ink-2); font-weight: 600; }
+  header.hero .meta a { color: var(--clay-2); }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.55rem;
+    margin: 3rem 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  h2 .count {
+    display: inline-block;
+    background: var(--inset);
+    color: var(--ink-2);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.78rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    margin-left: 0.5rem;
+    vertical-align: 0.25em;
+    font-weight: 600;
+  }
+  h3 { font-size: 1.05rem; margin: 0 0 0.4rem; font-weight: 600; color: var(--ink); }
+  p { margin: 0.4rem 0 0.7rem; color: var(--ink-2); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.86em;
+    background: var(--inset);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  a { color: var(--clay-2); }
+
+  /* Hero summary panel */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+  }
+  .summary h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .summary .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+  }
+  .summary .stat {
+    display: flex;
+    flex-direction: column;
+    padding: 0.7rem 0.85rem;
+    background: var(--inset);
+    border-radius: var(--radius-sm);
+    gap: 0.15rem;
+  }
+  .summary .stat .n {
+    font-family: Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .summary .stat .l {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  /* Pill / tags */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .pill-decision  { background: #E6F4EC; color: #0F7A52; }
+  .pill-deviation { background: #FFF4D6; color: #8C6A14; }
+  .pill-tradeoff  { background: #FBE6DC; color: #B8602A; }
+  .pill-open      { background: #FEECEA; color: #B33A1A; }
+
+  /* Entry card */
+  .entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--muted);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin: 0.85rem 0;
+    box-shadow: var(--shadow);
+  }
+  .entry.decision  { border-left-color: #0F7A52; }
+  .entry.deviation { border-left-color: #D4A84B; }
+  .entry.tradeoff  { border-left-color: #D97757; }
+  .entry.open      { border-left-color: #C44A2F; }
+
+  .entry .head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
+  }
+  .entry .head .src {
+    margin-left: auto;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    background: var(--inset);
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+  }
+  .entry .alts {
+    margin-top: 0.6rem;
+    background: var(--inset);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.85rem;
+  }
+  .entry .alts .alt-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .entry .alts ul { padding-left: 1.1rem; margin: 0.2rem 0; }
+  .entry .alts li { margin: 0.15rem 0; color: var(--ink-2); font-size: 0.93rem; }
+  .entry .alts li.picked { color: var(--ink); font-weight: 600; }
+  .entry .alts li.picked::marker { color: var(--brand); }
+
+  /* Architecture sketch */
+  .arch {
+    background: var(--inset);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin: 1rem 0 2rem;
+    overflow-x: auto;
+  }
+  .arch svg { display: block; margin: 0 auto; max-width: 100%; }
+  .arch figcaption { text-align: center; margin-top: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+
+  hr.spacer { border: 0; height: 1px; background: var(--border); margin: 2.5rem 0 0; }
+
+  /* Changelog */
+  .changelog {
+    background: var(--inset);
+    border-radius: var(--radius);
+    padding: 0.85rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.92rem;
+  }
+  .changelog li { margin: 0.3rem 0; color: var(--ink-2); }
+  .changelog strong { color: var(--ink); font-family: ui-monospace, monospace; font-size: 0.85rem; }
+
+  .empty {
+    color: var(--muted);
+    font-style: italic;
+    background: var(--inset);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 1rem;
+    font-size: 0.93rem;
+  }
+</style>
+</head>
+<body>
+
+<main>
+
+  <header class="hero">
+    <div class="eyebrow">Living doc · updated as build progresses</div>
+    <h1>Implementation Notes</h1>
+    <p class="lede">
+      Where the implementation diverges from, interprets, or extends the
+      spec at <a href="FoodToIndia_WhatsApp_Confirmation_Spec.html">FoodToIndia_WhatsApp_Confirmation_Spec.html</a>.
+      Read this <em>with</em> the spec, not instead of it.
+    </p>
+    <div class="meta">
+      <span><strong>Feature</strong> WhatsApp Recipient Confirmation</span>
+      <span><strong>Repos</strong> admin + foodtoindia</span>
+      <span><strong>Phase 1 scope</strong> Parts 1–3 + Part 4 write-only</span>
+      <span><strong>Started</strong> 2026-05-18</span>
+    </div>
+  </header>
+
+  <div class="summary">
+    <h4>At a glance</h4>
+    <div class="grid">
+      <div class="stat"><span class="n">10</span><span class="l">Decisions</span></div>
+      <div class="stat"><span class="n">3</span><span class="l">Deviations</span></div>
+      <div class="stat"><span class="n">2</span><span class="l">Tradeoffs</span></div>
+      <div class="stat"><span class="n">1</span><span class="l">Open</span></div>
+    </div>
+  </div>
+
+  <div class="arch">
+    <svg viewBox="0 0 880 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cross-app architecture sketch">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#8A837A"/>
+        </marker>
+      </defs>
+      <g font-family="-apple-system, system-ui, sans-serif" font-size="13" fill="#2D2A26">
+        <!-- admin block -->
+        <rect x="20" y="40" width="280" height="200" rx="14" fill="#FFFFFF" stroke="#D97757" stroke-width="1.5"/>
+        <text x="40" y="68" font-weight="700" fill="#B8602A">admin/</text>
+        <text x="40" y="86" font-size="11" fill="#8A837A">ops cockpit</text>
+        <rect x="40" y="100" width="240" height="34" rx="7" fill="#FBE6DC"/>
+        <text x="55" y="121" font-size="12">WhatsApp button (pages/orders.js)</text>
+        <rect x="40" y="142" width="240" height="34" rx="7" fill="#FBE6DC"/>
+        <text x="55" y="163" font-size="12">Deliver-at field + status badges</text>
+        <rect x="40" y="184" width="240" height="34" rx="7" fill="#FBE6DC"/>
+        <text x="55" y="205" font-size="12">Existing Resend → time-change email</text>
+
+        <!-- foodtoindia block -->
+        <rect x="380" y="40" width="280" height="200" rx="14" fill="#FFFFFF" stroke="#117150" stroke-width="1.5"/>
+        <text x="400" y="68" font-weight="700" fill="#0F7A52">foodtoindia/</text>
+        <text x="400" y="86" font-size="11" fill="#8A837A">customer app + public confirmation</text>
+        <rect x="400" y="100" width="240" height="34" rx="7" fill="#E6F4EC"/>
+        <text x="415" y="121" font-size="12">/confirm/[orderId] page</text>
+        <rect x="400" y="142" width="240" height="34" rx="7" fill="#E6F4EC"/>
+        <text x="415" y="163" font-size="12">/api/confirm-order (validates token)</text>
+        <rect x="400" y="184" width="240" height="34" rx="7" fill="#E6F4EC"/>
+        <text x="415" y="205" font-size="12">Re-uses lib/scheduling.js (30-min, IST)</text>
+
+        <!-- firestore -->
+        <rect x="700" y="80" width="160" height="160" rx="14" fill="#FFFFFF" stroke="#6A8CAF" stroke-width="1.5"/>
+        <text x="780" y="108" text-anchor="middle" font-weight="700" fill="#34587E">Firestore</text>
+        <text x="780" y="124" text-anchor="middle" font-size="11" fill="#8A837A">shared by both</text>
+        <rect x="720" y="140" width="120" height="32" rx="6" fill="#E3ECF5"/>
+        <text x="780" y="160" text-anchor="middle" font-size="11">users/{uid}/orders</text>
+        <rect x="720" y="180" width="120" height="32" rx="6" fill="#E3ECF5"/>
+        <text x="780" y="200" text-anchor="middle" font-size="11">recipients/{phoneE164}</text>
+
+        <!-- arrows: admin ↔ firestore, foodtoindia ↔ firestore -->
+        <line x1="300" y1="140" x2="378" y2="140" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <line x1="660" y1="160" x2="718" y2="160" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <line x1="660" y1="200" x2="718" y2="200" stroke="#8A837A" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <line x1="300" y1="200" x2="718" y2="200" stroke="#D4A84B" stroke-width="1.2" stroke-dasharray="5 3"/>
+        <text x="480" y="230" font-size="10.5" fill="#8C6A14" text-anchor="middle">admin polls Firestore for pendingSenderNotification → sends email</text>
+      </g>
+    </svg>
+    <figcaption>Architecture at a glance. Two apps, one Firestore. The dashed amber line is the email handoff path.</figcaption>
+  </div>
+
+  <!-- ===================== DECISIONS ===================== -->
+
+  <h2>Decisions <span class="count">10</span></h2>
+  <p>Choices made where the spec was silent or ambiguous, and resolved before build.</p>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Phase 1 = Parts 1+2+3 + Part 4 write-only</h3>
+      <span class="src">spec §3 + §4</span>
+    </div>
+    <p>
+      Confirmation page writes to <code>recipients/&#123;phoneE164&#125;</code>
+      so the profile collection accumulates real data from day one. The
+      order-write API does <em>not</em> read from the profile yet — no
+      silent pre-fill of incoming orders. Auto-fill is phase 2.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Order doc schema stays as-is</h3>
+      <span class="src">spec §4 schema</span>
+    </div>
+    <p>
+      Existing <code>recipient.*</code> fields (<code>doorNo</code>,
+      <code>addressLine</code>, <code>landmark</code>,
+      <code>location.formattedAddress</code>) are untouched. The 7-field
+      structured address (<code>doorFlat</code>, <code>street</code>,
+      <code>landmark</code>, <code>area</code>, <code>city</code>,
+      <code>state</code>, <code>pincode</code>) only lives in two new
+      places:
+    </p>
+    <div class="alts">
+      <div class="alt-label">Stored in</div>
+      <ul>
+        <li><code>recipientContact.confirmedAddress</code> on the order doc</li>
+        <li><code>recipients/&#123;phoneE164&#125;.confirmedAddress</code> profile</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Time-change email is sent by admin, not foodtoindia</h3>
+      <span class="src">spec §2 on-submit step 3</span>
+    </div>
+    <p>
+      Resend integration + templates already live in admin. Adding a
+      second Resend client to foodtoindia is unnecessary surface area.
+      Flow:
+    </p>
+    <div class="alts">
+      <ul>
+        <li><code>/api/confirm-order</code> in foodtoindia sets <code>recipientContact.pendingSenderNotification = true</code> when the recipient changed the time.</li>
+        <li>Admin (existing Resend infra) picks the flag up and sends. Pickup mechanism is TBD in plan mode — likely lightweight polling.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Token: <code>crypto.randomUUID()</code>, no expiration</h3>
+      <span class="src">spec §1 on-click step 1</span>
+    </div>
+    <p>
+      Order lifecycle handles invalidation — once delivered or cancelled,
+      the page renders "already processed" regardless of token state. No
+      background expiry job needed.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">"No WhatsApp" treatment only fires for non-IN recipients</h3>
+      <span class="src">spec §1 (silent) · build feedback 2026-05-18</span>
+    </div>
+    <p>
+      Sender opt-in flag is a hint, not a gate — button always stays
+      clickable. <strong>Initial gating bug</strong> (caught during build):
+      <code>recipientPhoneIsWhatsApp === false</code> flipped the button
+      to gray with "marked as no WhatsApp — call instead". But the
+      cart's WA checkbox is a plain boolean with no "user didn't engage"
+      state, and it defaults unchecked for IN recipients — which flagged
+      almost every IN order incorrectly.
+    </p>
+    <p>
+      <strong>Fixed gating</strong> in <code>senderMarkedNoWhatsApp(order)</code>:
+      treat the boolean as a real signal <em>only when the country is
+      non-IN</em>. For IN we always show the default green WA button —
+      WhatsApp penetration is ~95% and ops falls back to a phone call if
+      WhatsApp bounces on the rare landline-only exception.
+    </p>
+    <p style="font-size:0.88rem; color:var(--muted)">
+      Long-term fix is a tri-state field
+      (<code>true | false | null</code>) so we can distinguish "user said
+      no" from "user didn't engage" — but that's a schema + cart-UI
+      change. Country-gating captures the value at zero data-model cost.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Re-sending WhatsApp re-uses the same token; only timestamp updates</h3>
+      <span class="src">spec §1 (silent)</span>
+    </div>
+    <p>
+      Avoids invalidating a link the recipient may still be looking at
+      from the first message. Clean idempotency: one token per
+      <code>recipientContact</code>, lifecycle-bound.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">No "no-response after 4h" cron in phase 1</h3>
+      <span class="src">spec §3 status badges</span>
+    </div>
+    <p>
+      Spec lists a "No response" (red) status implying background
+      detection. Keeping it manual: dispatch row shows the
+      <code>whatsappSentAt</code> timestamp and ops judges. Re-visit when
+      Tool 3 (dispatch monitoring cron) ships — that's the natural home.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">English-only WhatsApp message in phase 1</h3>
+      <span class="src">spec §1 templates</span>
+    </div>
+    <p>
+      Six template variants all English. Hindi / Punjabi deferred until
+      founder provides translations or volume justifies localization
+      tooling.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Three-tier deliver-at storage on order doc</h3>
+      <span class="src">spec §3 deliver-at</span>
+    </div>
+    <p>
+      Spec says ops's manual time entry "overrides sender's" but doesn't
+      specify the storage shape. Chose three separate fields with a clear
+      precedence so the original sender / recipient signals are
+      preserved (useful for analytics + dispute resolution):
+    </p>
+    <ul>
+      <li><code>scheduling.scheduledFor</code> — sender's checkout choice (unchanged)</li>
+      <li><code>recipientContact.confirmedTimeSlot</code> — recipient's choice via confirmation page</li>
+      <li><code>recipientContact.opsConfirmedTimeSlot</code> — ops manual entry from WhatsApp chat</li>
+    </ul>
+    <p>
+      The <code>effectiveDeliverAt(order)</code> helper picks the winner:
+      ops &gt; recipient &gt; sender.
+    </p>
+  </div>
+
+  <div class="entry decision">
+    <div class="head">
+      <span class="pill pill-decision">Decision</span>
+      <h3 style="margin:0">Firestore composite index for <code>collectionGroup('orders')</code> created proactively</h3>
+      <span class="src">spec §2 + plan phase C</span>
+    </div>
+    <p>
+      <code>db.collectionGroup('orders').where('__name__', '==', orderId)</code>
+      requires a collection-group-scoped index on the <code>__name__</code>
+      field. Firestore's default single-field auto-indexes do not cover
+      collection-group queries. First call to <code>/api/confirm-order-lookup</code>
+      would fail at runtime with a "needs index" error pointing to a
+      console link.
+    </p>
+    <p>
+      We add the index to <code>firestore.indexes.json</code> in
+      <code>foodtoindia/</code> and deploy with
+      <code>firebase deploy --only firestore:indexes</code> as part of
+      Phase C — before the first end-to-end test of the confirmation page.
+    </p>
+  </div>
+
+  <!-- ===================== TRADEOFFS ===================== -->
+
+  <h2>Tradeoffs <span class="count">2</span></h2>
+  <p>Choices where multiple valid options existed and the path picked needs to be auditable later.</p>
+
+  <div class="entry tradeoff">
+    <div class="head">
+      <span class="pill pill-tradeoff">Tradeoff</span>
+      <h3 style="margin:0">Public order lookup uses <code>collectionGroup('orders')</code></h3>
+      <span class="src">spec §2 security</span>
+    </div>
+    <p>
+      Orders live at <code>users/&#123;uid&#125;/orders/&#123;orderId&#125;</code>
+      but the confirmation page URL only carries the order ID, not the
+      uid.
+    </p>
+    <div class="alts">
+      <div class="alt-label">Options considered</div>
+      <ul>
+        <li class="picked"><strong>Chosen:</strong> <code>db.collectionGroup('orders')</code> filtered by orderId + token. Same pattern as <code>scripts/_check-order-recipient.js</code>. No schema change. Single Firestore read.</li>
+        <li>Denormalize uid into URL (<code>/confirm/[uid]/[orderId]</code>) — leaks the uid in WhatsApp-shared links.</li>
+        <li>Mirror to flat <code>/confirmations/&#123;orderId&#125;</code> doc — doubles writes, adds a sync path to maintain.</li>
+      </ul>
+    </div>
+    <p style="font-size:0.88rem; color:var(--muted); margin-top:0.5rem">
+      At 47 orders/week the scan is cheap. Re-evaluate at 500+ orders/week.
+    </p>
+  </div>
+
+  <div class="entry tradeoff">
+    <div class="head">
+      <span class="pill pill-tradeoff">Tradeoff</span>
+      <h3 style="margin:0">Confirmation page scheduling = checkout scheduling, not spec's 1-hour windows</h3>
+      <span class="src">spec §2 delivery time</span>
+    </div>
+    <p>
+      Spec proposes 1-hour windows on the confirmation page. Customer
+      checkout uses 30-minute slots. Choosing alignment.
+    </p>
+    <div class="alts">
+      <div class="alt-label">Options considered</div>
+      <ul>
+        <li class="picked"><strong>Chosen:</strong> 30-minute slots, "ASAP" hidden outside 8 AM – 9:30 PM IST ops hours, 2-hour buffer. Re-uses <code>lib/scheduling.js</code> (<code>getDateOptions</code>, <code>getSlotsForAnchor</code>, <code>isWithinOpsHours</code>, <code>formatSlotLabel</code>).</li>
+        <li>Follow spec verbatim with 1-hour windows — creates a separate slot model + validator + UI grid for what is effectively the same dispatch decision.</li>
+      </ul>
+    </div>
+    <p style="font-size:0.88rem; color:var(--muted); margin-top:0.5rem">
+      Rationale: two flows that lead to the same dispatch decision shouldn't disagree on the time grid. Different grids would create UX surprises and validation edge cases.
+    </p>
+  </div>
+
+  <!-- ===================== DEVIATIONS ===================== -->
+
+  <h2>Deviations <span class="count">3</span></h2>
+  <p>Places where implementation intentionally departs from spec text.</p>
+
+  <div class="entry deviation">
+    <div class="head">
+      <span class="pill pill-deviation">Deviation</span>
+      <h3 style="margin:0"><code>recipient.recipientName</code> → <code>recipient.name</code></h3>
+      <span class="src">spec §1 variable sources</span>
+    </div>
+    <p>
+      Spec §1 references <code>recipient.recipientName</code>; the
+      actual field on the order doc is <code>recipient.name</code>.
+      Following the doc. Pure naming correction — no behavior change.
+    </p>
+  </div>
+
+  <div class="entry deviation">
+    <div class="head">
+      <span class="pill pill-deviation">Deviation</span>
+      <h3 style="margin:0">Dispatch queue is a flat table — no Overdue/ASAP/Scheduled sections (yet)</h3>
+      <span class="src">spec §3 dispatch enhancements</span>
+    </div>
+    <p>
+      Spec §3 + the strategy doc both reference an "existing Overdue /
+      ASAP / Scheduled sections" structure in the dispatch queue. The
+      current <code>admin/pages/orders.js</code> is one flat table — those
+      sections don't exist today. Phase 1 ships the per-order capabilities
+      (WA button, status pill, set-deliver-at modal, ops address editor)
+      without rearranging the layout into sections. The sort behavior
+      (by effective deliver-at within sections) is also deferred until
+      sections actually exist.
+    </p>
+  </div>
+
+  <div class="entry deviation">
+    <div class="head">
+      <span class="pill pill-deviation">Deviation</span>
+      <h3 style="margin:0">Deliver-at column on table deferred; modal-only entry point</h3>
+      <span class="src">plan phase D</span>
+    </div>
+    <p>
+      Plan called for a "Deliver at" column on the dispatch table that
+      ops could click to edit. Ship 1 wires editing through the order
+      detail modal instead (new "Set deliver time" + "Edit address"
+      buttons next to existing Cancel/Issue Store Credit). Reasoning:
+      the existing modal is already the per-order action surface; adding
+      a new column required a larger table-layout change for minimal
+      additional value at 47 orders/week. Soon-cue background tinting
+      (within 30 min of delivery) also deferred for the same reason.
+    </p>
+    <p style="font-size:0.88rem; color:var(--muted)">
+      Phase 2 candidate: add the column when the volume of pending
+      orders justifies surfacing the timestamp inline.
+    </p>
+  </div>
+
+  <!-- ===================== OPEN ===================== -->
+
+  <h2>Open questions <span class="count">1</span></h2>
+  <p>Things that surface during implementation and need your confirmation or revision.</p>
+
+  <div class="entry open">
+    <div class="head">
+      <span class="pill pill-open">Open</span>
+      <h3 style="margin:0">API + page tests deferred to phase 2</h3>
+      <span class="src">phase 1 verification</span>
+    </div>
+    <p>
+      Phase 1 ships with <strong>47 passing unit tests</strong> across
+      <code>tests/lib/whatsappTemplates.test.js</code> and
+      <code>tests/lib/recipientProfile.test.js</code> — covering both
+      pure-function libraries end-to-end.
+    </p>
+    <p>
+      Not covered: the new API routes
+      (<code>confirm-order-lookup</code>, <code>confirm-order</code>,
+      <code>log-sent</code>, <code>set-deliver-at</code>,
+      <code>set-address</code>, <code>send-time-change-notification</code>)
+      and the React confirmation page. API tests need Firestore
+      <code>collectionGroup</code> + transaction + batch mocks; the
+      page needs Playwright E2E. The existing
+      <code>tests/pages/api/orders.test.js</code> only does minimal
+      validation testing — building full mocks here is the right call
+      later, not now.
+    </p>
+    <p>
+      Recommendation: cover with Playwright E2E once the feature is
+      manually verified against dev Firestore.
+    </p>
+  </div>
+
+  <!-- ===================== RETROSPECTIVE ===================== -->
+
+  <h2>Retrospective — what wasn't well thought through the first time</h2>
+  <p>
+    Honest accounting of the gaps the user had to surface during build,
+    so the next feature avoids the same shape of misses. Most of these
+    were not spec ambiguities — they were <strong>workflow blind
+    spots</strong>: the spec was followed but the actual ops experience
+    wasn't traced end-to-end before code shipped.
+  </p>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Confirmation feedback loop was missing</h3>
+      <span class="src">user spotted 2026-05-18</span>
+    </div>
+    <p>
+      Built the recipient-side flow (page, API, writes, profile upsert,
+      time-change email) but didn't think through how ops <em>discovers
+      a confirmation has landed</em>. The recipient hit a "Thank you"
+      page; ops had no visual signal on the dispatch queue. The
+      <code>recipientContact.status === 'confirmed'</code> field was
+      written but no card UI consumed it.
+    </p>
+    <p>
+      Fix: <code>✓ Confirmed</code> pill on the dispatch card next to
+      the recipient name. Auto-refresh + Slack alert flagged for
+      follow-up.
+    </p>
+    <p><strong>Lesson:</strong> after building the "primary actor" flow
+    (recipient), trace each affected actor's feedback path explicitly.
+    Ask "how does <em>X</em> see this happened?" for every state
+    transition.</p>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Mobile card design needed five iterations</h3>
+      <span class="src">user feedback 2026-05-18</span>
+    </div>
+    <p>
+      Initial cards were generic React-y rows. Visual hierarchy was
+      flat, no anchor for scanning, ambiguous labels (no "Sender" /
+      "Recipient" distinction). Took the user five rounds of feedback
+      to land on a layout they'd accept: bike-vs-clock icon, time as
+      primary, "Sender: X · May 17" footer.
+    </p>
+    <p><strong>Lessons:</strong></p>
+    <ul>
+      <li>"Visual hierarchy" isn't an output you arrive at — it's a
+      design input. Sketch the card in ASCII or HTML <em>before</em>
+      writing the component, in 3-4 distinct variants, and have the
+      user pick. Saves rounds.</li>
+      <li>Avoid color decoration ("AI slop" — user's word) for purely
+      decorative purposes. Color carries meaning or doesn't appear.
+      The left rail I added was decoration; the inline red lateness is
+      meaning.</li>
+      <li>Reference real ops tools (DoorDash dispatcher, Apple
+      support, Airbnb host dashboard) <em>before</em> the first draft,
+      not after the user mentions them.</li>
+    </ul>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Stale modal state — twice</h3>
+      <span class="src">user spotted 2026-05-18</span>
+    </div>
+    <p>
+      After ops saved a delivery time, the modal kept showing the old
+      ASAP state. Same bug for address: "Current address on file"
+      showed the original sender address even after ops's update.
+    </p>
+    <p>
+      Root cause was the same in both: <code>selectedOrder</code> was
+      a snapshot, not a derived view. Optimistic updates patched one
+      field but reads pulled from a different field
+      (<code>scheduling.scheduledFor</code> vs
+      <code>recipientContact.opsConfirmedTimeSlot</code>). Required
+      <code>getEffectiveScheduling()</code> /
+      <code>formatCurrentAddress()</code> helpers <em>plus</em> a
+      sync effect to fix.
+    </p>
+    <p><strong>Lesson:</strong> when a feature has three sources for
+    one logical value (sender / recipient / ops), build the
+    precedence helper <em>first</em>, write it once, use it
+    everywhere. Don't read raw fields in components — always go
+    through the helper. The "stale modal" was actually the symptom; the
+    underlying issue was reading from the wrong field.</p>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Firestore lookup query was silently broken</h3>
+      <span class="src">user spotted 2026-05-18 via "link invalid"</span>
+    </div>
+    <p>
+      The public confirm page used
+      <code>collectionGroup('orders').where(FieldPath.documentId(),
+      '==', orderId)</code> — but Firestore requires the value to be a
+      <em>full document path</em> (4 segments), not a bare ID. The
+      query threw at runtime; the API caught it and returned 500; the
+      page mapped any non-2xx to "link invalid or expired."
+    </p>
+    <p>
+      Three failures stacked: (a) wrong query, (b) catch-all error
+      message hiding the cause, (c) no integration test that would
+      have caught it before user-facing testing.
+    </p>
+    <p><strong>Lessons:</strong></p>
+    <ul>
+      <li>Test the Firestore query path end-to-end with a real doc ID
+      in a script <em>before</em> the UI lands on it. The
+      <code>scripts/_check-confirm-token.js</code> diagnostic should
+      have been written <em>during</em> Phase C, not after a failure.</li>
+      <li>Don't collapse different error states ("link bad" vs "server
+      error") into one user-facing message. Even an internal "Server
+      error — try again" would have prompted the user to check logs
+      instead of doubting the link.</li>
+      <li>When designing public-page lookup by parent-scoped resource,
+      use a top-level shadow doc
+      (<code>confirm-lookups/{orderId}</code>) — the indirection layer
+      avoids collection-group quirks <em>and</em> is the right privacy
+      model.</li>
+    </ul>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Defaults didn't match ops's actual context</h3>
+      <span class="src">user feedback 2026-05-18</span>
+    </div>
+    <p>Three defaults I picked wrong:</p>
+    <ul>
+      <li><strong>"No WhatsApp" treatment for IN recipients</strong>
+      — flagged every IN order as "call instead" because the cart
+      defaults the checkbox unchecked. India has ~95% WhatsApp
+      penetration. Fix: country-gate the check to non-IN only.</li>
+      <li><strong>3-4 day scheduling range for ops</strong> — copied
+      the customer-flow range without thinking about ops's actual use
+      case (WhatsApp conversations sometimes commit to "next Friday").
+      Fix: <code>getDateOptions</code> takes a <code>maxOffset</code>
+      param; ops passes 6 for 7-day range.</li>
+      <li><strong>Door / Flat marked required with asterisk</strong>
+      — validation already accepted Street alone, so the asterisk was
+      a lie. Removed.</li>
+    </ul>
+    <p><strong>Lesson:</strong> default values are decisions, not
+    placeholders. For every default I copy from another flow, ask "is
+    the user-context the same?" The customer is choosing a delivery
+    time for themselves; ops is committing to a verbal promise from a
+    WhatsApp chat. Different contexts, different defaults.</p>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Set ASAP needed a confirmation prompt</h3>
+      <span class="src">user spotted 2026-05-18</span>
+    </div>
+    <p>
+      "Set ASAP" was a one-tap action that overwrote any scheduled
+      time without warning. User flagged it: ops could lose a
+      carefully-negotiated WhatsApp time with a misplaced tap.
+    </p>
+    <p><strong>Lesson:</strong> destructive actions need confirmation
+    even in internal tools — especially when the action is reachable
+    from the same modal as the non-destructive primary action. The
+    "Save time" and "Set ASAP" buttons sit next to each other; one
+    overwrites the other's intended state. Confirmation on the
+    destructive one is cheap insurance.</p>
+  </div>
+
+  <div class="entry open" style="border-left-color: var(--coral)">
+    <div class="head">
+      <span class="pill pill-open">Process miss</span>
+      <h3 style="margin:0">Modal navigation broke flow</h3>
+      <span class="src">user spotted 2026-05-18</span>
+    </div>
+    <p>
+      First version: tapping a dispatch card navigated to
+      <code>/orders?openOrder=…</code>. The URL changed; ops lost
+      their place in the dispatch list. User wanted an in-place modal
+      on the dispatch page.
+    </p>
+    <p><strong>Lesson:</strong> when adding click-through to a list
+    view, default to in-place modal (no URL change) unless there's a
+    specific reason to navigate. Navigation is for "show me a
+    different view of this thing"; modal is for "let me act on this
+    thing without losing my place."</p>
+  </div>
+
+  <h3>Pattern across all of these</h3>
+  <p>
+    I built to the spec but didn't <strong>walk the ops journey
+    end-to-end</strong> before declaring Phase 1 done. Each iteration
+    was the user noticing a step in their workflow that hadn't been
+    thought through. Better practice next time:
+  </p>
+  <ul class="check">
+    <li>After spec → before code: write a <em>narrative</em> of the
+    user (ops, recipient, sender) walking through the feature on
+    mobile and desktop. Identify every screen, every state, every
+    feedback loop.</li>
+    <li>For each state change on the server, list every actor
+    affected and how each finds out. Don't ship until each path is
+    explicit.</li>
+    <li>Build precedence/derivation helpers <em>before</em>
+    components consume the data. Components read through the
+    helper, never raw.</li>
+    <li>Write integration scripts during build, not after a failure.
+    Treat the "happy path script" as part of the deliverable, not as
+    debugging tooling.</li>
+    <li>For internal tools, copy patterns from reference ops apps
+    (DoorDash, Stripe Dashboard, Linear) at design-sketch time, not
+    after rounds of feedback.</li>
+  </ul>
+
+  <!-- ===================== CHANGELOG ===================== -->
+
+  <h2>Changelog</h2>
+  <ul class="changelog">
+    <li>
+      <strong>2026-05-18</strong> — Initial notes file. 8 decisions, 2
+      tradeoffs, 1 deviation locked before plan mode. Architecture sketch
+      added. Visual style aligned with the HTML spec.
+    </li>
+    <li>
+      <strong>2026-05-18</strong> — Added Firestore composite index
+      decision after plan review surfaced the
+      <code>collectionGroup</code> index requirement.
+    </li>
+    <li>
+      <strong>2026-05-18</strong> — Phase 1 build complete. Added
+      three-tier deliver-at storage decision; logged two deviations
+      around the dispatch queue (section split deferred, deliver-at
+      column deferred to phase 2).
+    </li>
+    <li>
+      <strong>2026-05-18</strong> — Fixed "no WhatsApp" gating bug
+      caught during manual verification. Updated decision to record
+      country-gated rationale.
+    </li>
+    <li>
+      <strong>2026-05-18</strong> — Added Retrospective section
+      after user pointed out the build had too many iterations
+      driven by their testing rather than by my upfront thinking.
+      Seven workflow blind spots logged + cross-cutting lesson on
+      walking the journey end-to-end before shipping.
+    </li>
+  </ul>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WhatsApp Recipient Confirmation — Spec</title>
+<style>
+  :root {
+    --paper:   #FAF8F5;
+    --surface: #FFFFFF;
+    --inset:   #F0EDE8;
+    --oat:     #E3DACC;
+    --border:  #D4CFC7;
+    --ink:     #2D2A26;
+    --ink-2:   #57534E;
+    --muted:   #8A837A;
+    --brand:   #117150;
+    --brand-2: #0d5a40;
+    --clay:    #D97757;
+    --clay-2:  #B8602A;
+    --olive:   #788C5D;
+    --gold:    #D4A84B;
+    --coral:   #C44A2F;
+    --sky:     #6A8CAF;
+    --wa-bubble: #DCF8C6;
+    --wa-bg:    #ECE5DD;
+    --shadow:  0 1px 2px rgba(45,42,38,.06), 0 4px 12px rgba(45,42,38,.04);
+    --shadow-md: 0 4px 12px rgba(45,42,38,.08), 0 12px 28px rgba(45,42,38,.06);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 3rem;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 1.5rem; }
+    aside.toc { position: static !important; max-height: none !important; }
+  }
+  aside.toc {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    font-size: 0.88rem;
+  }
+  aside.toc h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0 0 1.25rem; }
+  aside.toc li { margin: 0.1rem 0; }
+  aside.toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border-left: 2px solid transparent;
+  }
+  aside.toc a:hover { background: var(--inset); color: var(--ink); }
+  aside.toc a.depth-2 { padding-left: 1.25rem; font-size: 0.84rem; color: var(--muted); }
+
+  header.hero {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  header.hero .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--clay-2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  header.hero h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.6rem;
+    line-height: 1.1;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  header.hero .lede {
+    color: var(--ink-2);
+    font-size: 1.05rem;
+    max-width: 60ch;
+    margin: 0.5rem 0 1rem;
+  }
+  header.hero .meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  header.hero .meta span strong { color: var(--ink-2); font-weight: 600; }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.65rem;
+    color: var(--ink);
+    margin: 3rem 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  h2 .num {
+    color: var(--clay);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.85rem;
+    margin-right: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    vertical-align: 0.25em;
+  }
+  h3 { font-size: 1.1rem; margin: 1.75rem 0 0.5rem; color: var(--ink); font-weight: 600; }
+  h4 { font-size: 0.95rem; margin: 1rem 0 0.4rem; color: var(--ink-2); font-weight: 600; }
+  p { margin: 0.5rem 0 0.9rem; color: var(--ink-2); }
+  a { color: var(--clay-2); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.86em;
+    background: var(--inset);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  /* Callout banner at top */
+  .banner {
+    background: linear-gradient(180deg, #FFF8E6 0%, #FFF4D6 100%);
+    border: 1px solid #F5E0A1;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0 2rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+  }
+  .banner .icon { font-size: 1.1rem; line-height: 1.2; flex-shrink: 0; }
+  .banner .body { font-size: 0.92rem; color: #5C4A1A; line-height: 1.55; }
+  .banner .body strong { color: #422F00; }
+  .banner a { color: #7A5610; font-weight: 600; }
+
+  /* Cards & sections */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    margin: 1rem 0;
+  }
+  .card.inset { background: var(--inset); box-shadow: none; }
+  .card.tight { padding: 1rem 1.25rem; }
+
+  /* Pill / badges */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: 0.15em;
+  }
+  .pill.green   { background: #E6F4EC; color: #0F7A52; }
+  .pill.yellow  { background: #FFF4D6; color: #8C6A14; }
+  .pill.grey    { background: var(--inset); color: var(--muted); }
+  .pill.red     { background: #FEECEA; color: #B33A1A; }
+  .pill.clay    { background: #FBE6DC; color: #B8602A; }
+  .pill.olive   { background: #EEF1E3; color: #4D6B36; }
+  .pill.sky     { background: #E3ECF5; color: #34587E; }
+
+  /* macOS-style window chrome — for mockup framing */
+  .mac {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    margin: 1rem 0;
+  }
+  .mac .chrome {
+    background: var(--oat);
+    padding: 0.5rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.75rem;
+    color: var(--ink-2);
+  }
+  .mac .chrome .dots { display: flex; gap: 0.35rem; }
+  .mac .chrome .dots span {
+    width: 11px; height: 11px; border-radius: 50%;
+    display: inline-block;
+  }
+  .mac .chrome .dots .r { background: #ED6B5F; }
+  .mac .chrome .dots .y { background: #F5BD4F; }
+  .mac .chrome .dots .g { background: #61C554; }
+  .mac .chrome .title { margin-left: auto; margin-right: auto; padding-right: 2rem; }
+  .mac .body { padding: 1.25rem; }
+  .mac .body.tight { padding: 1rem 1.25rem; }
+  .mac .body.flush { padding: 0; }
+
+  /* WhatsApp message bubble mockups */
+  .wa {
+    background: var(--wa-bg);
+    background-image: radial-gradient(rgba(45,42,38,.04) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .wa-bubble {
+    background: var(--wa-bubble);
+    border-radius: 14px;
+    padding: 0.7rem 0.85rem;
+    max-width: 86%;
+    box-shadow: 0 1px 1px rgba(0,0,0,.08);
+    font-size: 0.95rem;
+    color: #1F1F1F;
+    line-height: 1.5;
+    white-space: pre-line;
+    position: relative;
+  }
+  .wa-bubble::before {
+    content: "";
+    position: absolute;
+    top: 0; right: -7px;
+    width: 0; height: 0;
+    border-top: 8px solid var(--wa-bubble);
+    border-right: 8px solid transparent;
+  }
+  .wa-wrap {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .wa-bubble .var { background: #FBE6DC; padding: 0 0.2rem; border-radius: 3px; font-weight: 500; }
+  .wa-bubble .link { color: #1d6aab; word-break: break-all; }
+  .wa-bubble .ts { display: block; text-align: right; font-size: 0.68rem; color: #7A8B8C; margin-top: 0.3rem; }
+
+  /* Condition matrix for message templates */
+  .templates {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  .tmpl-card .conds {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin: 0.35rem 0 0.65rem;
+  }
+  .tmpl-card h4 {
+    margin: 0 0 0.25rem;
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Flow diagram (SVG container) */
+  .flow {
+    background: var(--inset);
+    border-radius: var(--radius);
+    padding: 1.5rem 1rem;
+    margin: 1rem 0 2rem;
+    overflow-x: auto;
+  }
+  .flow svg { display: block; margin: 0 auto; max-width: 100%; }
+  .flow figcaption {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0 1.25rem;
+    font-size: 0.92rem;
+  }
+  thead th {
+    background: var(--inset);
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    color: var(--ink-2);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  tbody td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td code { white-space: nowrap; }
+
+  /* Numbered step list */
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 1rem;
+  }
+  ol.steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 0.5rem 0 0.5rem 2.4rem;
+    color: var(--ink-2);
+  }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.55rem;
+    width: 1.65rem; height: 1.65rem;
+    background: var(--clay);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  ol.steps li strong { color: var(--ink); }
+
+  /* Schema code card */
+  .schema {
+    background: #1F1B18;
+    color: #E3DACC;
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.84rem;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 0.75rem 0 1.25rem;
+  }
+  .schema .k { color: #ABDB6E; }
+  .schema .t { color: #FF9D7A; }
+  .schema .n { color: #C5A6F0; }
+  .schema .c { color: #8A837A; }
+  .schema .punc { color: #D4CFC7; }
+  .schema .ind { color: var(--muted); }
+
+  /* Status swatch grid */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin: 0.75rem 0 1.5rem;
+  }
+  .swatch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .swatch .dot {
+    width: 0.7rem; height: 0.7rem;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: 0.05em;
+    margin-right: 0.4rem;
+  }
+  .swatch .label { font-weight: 600; color: var(--ink); }
+  .swatch .desc { font-size: 0.85rem; color: var(--ink-2); }
+
+  /* Variable highlight */
+  .var { background: #FBE6DC; padding: 0 0.25rem; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.86em; }
+
+  /* "Not included" gotcha box */
+  .gotchas .gotcha {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .gotchas .gotcha:last-child { border-bottom: none; }
+  .gotchas .gotcha .mark {
+    flex-shrink: 0;
+    width: 1.4rem; height: 1.4rem;
+    background: #FEECEA;
+    color: var(--coral);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700;
+    margin-top: 0.1rem;
+  }
+  .gotchas .gotcha strong { color: var(--ink); }
+
+  /* Layout primitives */
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .row { grid-template-columns: 1fr; } }
+  ul.clean { list-style: none; padding: 0; margin: 0.5rem 0; }
+  ul.clean li { padding: 0.2rem 0 0.2rem 1.1rem; position: relative; color: var(--ink-2); }
+  ul.clean li::before {
+    content: "";
+    position: absolute; left: 0; top: 0.7rem;
+    width: 6px; height: 6px;
+    background: var(--clay);
+    border-radius: 50%;
+  }
+
+  hr.spacer { border: 0; height: 1px; background: var(--border); margin: 2rem 0; }
+
+  .footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="toc">
+    <h4>On this page</h4>
+    <ol>
+      <li><a href="#context">Context &amp; goal</a></li>
+      <li><a href="#flow">End-to-end flow</a></li>
+    </ol>
+    <h4>Parts</h4>
+    <ol>
+      <li><a href="#part-1">1 · WhatsApp button</a></li>
+      <li><a href="#part-1-msg" class="depth-2">Message templates</a></li>
+      <li><a href="#part-1-vars" class="depth-2">Variables</a></li>
+      <li><a href="#part-2">2 · Confirmation page</a></li>
+      <li><a href="#part-2-security" class="depth-2">Security</a></li>
+      <li><a href="#part-2-content" class="depth-2">Page content</a></li>
+      <li><a href="#part-2-submit" class="depth-2">On submit</a></li>
+      <li><a href="#part-3">3 · Dispatch queue</a></li>
+      <li><a href="#part-3-status" class="depth-2">Status badges</a></li>
+      <li><a href="#part-4">4 · Recipient profile</a></li>
+    </ol>
+    <h4>Reference</h4>
+    <ol>
+      <li><a href="#schema">Firestore schema</a></li>
+      <li><a href="#out-of-scope">Out of scope</a></li>
+      <li><a href="#deltas">Implementation deltas</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <header class="hero">
+      <div class="eyebrow">Spec · v1.0 · admin + foodtoindia</div>
+      <h1>WhatsApp Recipient Confirmation</h1>
+      <p class="lede">
+        Replace the founder's manual recipient-confirmation phone calls with
+        a one-click WhatsApp deep-link from the admin dispatch queue, plus a
+        public confirmation page where recipients verify address and delivery
+        time. State lives on the order doc; addresses accumulate in a global
+        <code>recipients/&#123;phoneE164&#125;</code> profile.
+      </p>
+      <div class="meta">
+        <span><strong>Status</strong> Approved for build</span>
+        <span><strong>Owner</strong> Athahar</span>
+        <span><strong>Repos</strong> admin · foodtoindia</span>
+        <span><strong>Phase 1 scope</strong> Parts 1–3 + Part 4 write-only</span>
+      </div>
+    </header>
+
+    <div class="banner">
+      <div class="icon">⚖️</div>
+      <div class="body">
+        <strong>This spec is the goal.</strong> Implementation choices that
+        diverge from it — schema mappings, lookup strategy, where the
+        time-change email is sent — are tracked separately in
+        <a href="implementation-notes.html">implementation-notes.html</a>.
+        Read both side-by-side when reviewing the build.
+      </div>
+    </div>
+
+    <!-- ===================== CONTEXT ===================== -->
+
+    <section id="context">
+      <h2><span class="num">00</span>Context &amp; goal</h2>
+      <p>
+        Our ops person currently calls or WhatsApps recipients manually to
+        confirm delivery address and timing before placing orders on Swiggy
+        or Zomato. This is untracked — no record of when contact was
+        attempted, what was confirmed, or what time the recipient requested.
+        If the ops person forgets a detail from a WhatsApp conversation,
+        orders get delayed or fail.
+      </p>
+
+      <div class="card">
+        <h3 style="margin-top:0">Three deliverables</h3>
+        <ul class="clean">
+          <li>
+            <strong>A "Send WhatsApp" button</strong> on each order in the
+            dispatch queue that opens WhatsApp with a smart pre-formatted
+            message.
+          </li>
+          <li>
+            <strong>A public recipient confirmation page</strong> (no auth)
+            where recipients confirm their address and pick a delivery time
+            via the link in the WhatsApp message.
+          </li>
+          <li>
+            <strong>Dispatch queue enhancements</strong> — "Deliver at"
+            field, ops address editing, and "Ready to dispatch" status logic
+            for repeat recipients.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== FLOW ===================== -->
+
+    <section id="flow">
+      <h2><span class="num">01</span>End-to-end flow</h2>
+      <p>
+        How a single order moves through the system, from cart submission to
+        final dispatch. Each numbered step is a state change on the order
+        doc; dotted paths are conditional.
+      </p>
+
+      <figure class="flow">
+        <svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WhatsApp confirmation flow diagram">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#8A837A"/>
+            </marker>
+            <marker id="arr-clay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#D97757"/>
+            </marker>
+          </defs>
+          <!-- Boxes -->
+          <g font-family="-apple-system, system-ui, sans-serif" font-size="13" fill="#2D2A26">
+            <!-- 1 Order placed -->
+            <rect x="20"  y="100" width="130" height="64" rx="10" fill="#FFFFFF" stroke="#D4CFC7"/>
+            <text x="85" y="125" text-anchor="middle" font-weight="600">Order placed</text>
+            <text x="85" y="143" text-anchor="middle" fill="#8A837A" font-size="11">customer checkout</text>
+            <!-- 2 Ops clicks WA -->
+            <rect x="190" y="100" width="150" height="64" rx="10" fill="#FBE6DC" stroke="#D97757"/>
+            <text x="265" y="125" text-anchor="middle" font-weight="600">Ops clicks WA</text>
+            <text x="265" y="143" text-anchor="middle" fill="#B8602A" font-size="11">dispatch queue</text>
+            <!-- 3 Message sent -->
+            <rect x="380" y="100" width="150" height="64" rx="10" fill="#E6F4EC" stroke="#117150"/>
+            <text x="455" y="125" text-anchor="middle" font-weight="600">WhatsApp sent</text>
+            <text x="455" y="143" text-anchor="middle" fill="#0F7A52" font-size="11">wa.me deep link</text>
+            <!-- 4 Recipient confirms -->
+            <rect x="570" y="100" width="160" height="64" rx="10" fill="#FFFFFF" stroke="#D4CFC7"/>
+            <text x="650" y="125" text-anchor="middle" font-weight="600">Recipient confirms</text>
+            <text x="650" y="143" text-anchor="middle" fill="#8A837A" font-size="11">/confirm/[orderId]</text>
+            <!-- 5 DB updates -->
+            <rect x="770" y="100" width="130" height="64" rx="10" fill="#E6F4EC" stroke="#117150"/>
+            <text x="835" y="125" text-anchor="middle" font-weight="600">DB writes</text>
+            <text x="835" y="143" text-anchor="middle" fill="#0F7A52" font-size="11">order + profile</text>
+            <!-- 6 Email sender (conditional) -->
+            <rect x="660" y="210" width="180" height="56" rx="10" fill="#FFF4D6" stroke="#D4A84B" stroke-dasharray="4 3"/>
+            <text x="750" y="235" text-anchor="middle" font-weight="600">Notify sender</text>
+            <text x="750" y="252" text-anchor="middle" fill="#8C6A14" font-size="11">if time changed</text>
+
+            <!-- Arrows -->
+            <line x1="150" y1="132" x2="186" y2="132" stroke="#8A837A" stroke-width="1.5" marker-end="url(#arr)"/>
+            <line x1="340" y1="132" x2="376" y2="132" stroke="#D97757" stroke-width="1.5" marker-end="url(#arr-clay)"/>
+            <line x1="530" y1="132" x2="566" y2="132" stroke="#8A837A" stroke-width="1.5" marker-end="url(#arr)"/>
+            <line x1="730" y1="132" x2="766" y2="132" stroke="#8A837A" stroke-width="1.5" marker-end="url(#arr)"/>
+            <!-- Branch to email -->
+            <path d="M835 168 L835 195 L750 195 L750 207" fill="none" stroke="#D4A84B" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+
+            <!-- Step labels -->
+            <text x="85"  y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#D97757" font-weight="700">1</text>
+            <text x="265" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#D97757" font-weight="700">2</text>
+            <text x="455" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#D97757" font-weight="700">3</text>
+            <text x="650" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#D97757" font-weight="700">4</text>
+            <text x="835" y="86" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#D97757" font-weight="700">5</text>
+            <text x="750" y="200" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="#8C6A14" font-weight="700">6</text>
+
+            <!-- Footer guidance -->
+            <text x="20" y="30" font-weight="700" font-size="14" fill="#2D2A26">Happy path</text>
+            <text x="20" y="50" fill="#8A837A" font-size="12">Solid arrows = always. Dashed = conditional on recipient choice.</text>
+          </g>
+        </svg>
+        <figcaption>Six states. Five are unconditional; the email is sent only when the recipient changed the sender-selected time.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================== PART 1 ===================== -->
+
+    <section id="part-1">
+      <h2><span class="num">02</span>Part 1 · WhatsApp button on dispatch queue</h2>
+
+      <h3>Location</h3>
+      <p>
+        The dispatch queue page (the existing Overdue / ASAP / Scheduled
+        sections in <code>admin/pages/orders.js</code>). Add a WhatsApp icon
+        button on each order row, next to the recipient info.
+      </p>
+
+      <h3>On click</h3>
+      <ol class="steps">
+        <li>
+          <strong>Generate a 32-char token</strong> and store it as
+          <code>recipientContact.confirmToken</code> on the order doc.
+        </li>
+        <li>
+          <strong>Build the confirmation URL:</strong>
+          <code>https://foodtoindia.com/confirm/[orderId]?token=[confirmToken]</code>.
+        </li>
+        <li>
+          <strong>Pick the message template</strong> based on three
+          conditions (see message logic below).
+        </li>
+        <li>
+          <strong>Open the WhatsApp deep link:</strong>
+          <code>https://wa.me/[phone]?text=[encoded]</code> — phone from
+          <code>recipient.recipientPhoneE164</code>, strip the leading
+          <code>+</code>.
+        </li>
+        <li>
+          <strong>Log the contact attempt</strong> on the order doc
+          (see <a href="#schema">schema</a>: <code>recipientContact</code>
+          object, status <code>'pending'</code>).
+        </li>
+        <li>
+          <strong>Show "WA sent" indicator</strong> on the dispatch row with
+          the timestamp.
+        </li>
+      </ol>
+
+      <h3 id="part-1-msg">Message logic</h3>
+      <p>The message content depends on three conditions:</p>
+
+      <div class="card inset">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:18%">Condition</th>
+              <th>Check</th>
+              <th style="width:18%">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>A.</strong> Full address on order</td>
+              <td>Both door/flat number <em>and</em> street/address line are set on the recipient — not just area/locality.</td>
+              <td><code>recipient.doorNo</code> &amp; <code>recipient.addressLine</code></td>
+            </tr>
+            <tr>
+              <td><strong>B.</strong> Sender chose delivery time</td>
+              <td>Scheduled delivery time is set on the order.</td>
+              <td><code>scheduling.scheduledFor</code></td>
+            </tr>
+            <tr>
+              <td><strong>C.</strong> Confirmed profile on file</td>
+              <td>Recipient has a previously-confirmed address in <code>recipients/&#123;phoneE164&#125;</code>.</td>
+              <td>Part 4 lookup</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Six template variants below — each shown as a sample WhatsApp
+        message bubble. Highlighted spans are <span class="var">[variables]</span>
+        filled from the order.
+      </p>
+
+      <div class="templates">
+
+        <div class="tmpl-card card">
+          <h4>Variant 1 · Confirmed profile + delivery time</h4>
+          <div class="conds">
+            <span class="pill olive">✓ profile on file</span>
+            <span class="pill olive">✓ time set</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your address as:
+<span class="var">[Full Address from profile]</span>
+
+Your order will be delivered around <span class="var">[Time]</span> IST. Please let us know if this doesn't work for you.
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tmpl-card card">
+          <h4>Variant 2 · Confirmed profile, no time</h4>
+          <div class="conds">
+            <span class="pill olive">✓ profile on file</span>
+            <span class="pill grey">– no time</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your address as:
+<span class="var">[Full Address from profile]</span>
+
+What time would work best for delivery?
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tmpl-card card">
+          <h4>Variant 3 · Full address on order + delivery time</h4>
+          <div class="conds">
+            <span class="pill clay">~ order has address</span>
+            <span class="pill olive">✓ time set</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your address as:
+<span class="var">[Full Address: door/flat, street, landmark, area, city]</span>
+
+Your order will be delivered around <span class="var">[Time]</span> IST. Please let us know if this doesn't work for you.
+
+Is the address correct? If not, please reply with the correct address.
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tmpl-card card">
+          <h4>Variant 4 · Full address on order, no time</h4>
+          <div class="conds">
+            <span class="pill clay">~ order has address</span>
+            <span class="pill grey">– no time</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your address as:
+<span class="var">[Full Address: door/flat, street, landmark, area, city]</span>
+
+What time would work best for delivery?
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tmpl-card card">
+          <h4>Variant 5 · Area/city only + delivery time</h4>
+          <div class="conds">
+            <span class="pill red">! area only</span>
+            <span class="pill olive">✓ time set</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your location as <span class="var">[Area, City]</span>. Could you please share your full address including building/flat number and landmark?
+
+Your order is scheduled to be delivered around <span class="var">[Time]</span> IST. Please let us know if this doesn't work for you.
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tmpl-card card">
+          <h4>Variant 6 · Area/city only, no time</h4>
+          <div class="conds">
+            <span class="pill red">! area only</span>
+            <span class="pill grey">– no time</span>
+          </div>
+          <div class="wa">
+            <div class="wa-wrap">
+              <div class="wa-bubble">Hi <span class="var">[Recipient Name]</span>, this is from FoodToIndia. <span class="var">[Sender First Name]</span> has sent you a food order from <span class="var">[Restaurant]</span>.
+
+We have your location as <span class="var">[Area, City]</span>. Could you please share your full address including building/flat number and landmark?
+
+What time would work best for delivery?
+
+Or confirm here: <span class="link var">[confirmation page link]</span><span class="ts">10:42 ✓✓</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h3 id="part-1-vars">Variable sources</h3>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Source on order doc</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="var">[Recipient Name]</span></td><td><code>recipient.name</code></td></tr>
+          <tr><td><span class="var">[Sender First Name]</span></td><td>First token of <code>senderName</code> from order or sender profile</td></tr>
+          <tr><td><span class="var">[Restaurant]</span></td><td><code>restaurantName</code></td></tr>
+          <tr><td><span class="var">[Full Address]</span></td><td>Concat <code>doorNo</code> · <code>addressLine</code> · <code>landmark</code> · area · city</td></tr>
+          <tr><td><span class="var">[Area, City]</span></td><td>Parsed from <code>recipient.location.formattedAddress</code></td></tr>
+          <tr><td><span class="var">[Time]</span></td><td><code>scheduling.scheduledFor</code> formatted IST, 30-min slot</td></tr>
+          <tr><td><span class="var">[confirmation page link]</span></td><td>Built from <code>orderId</code> + <code>confirmToken</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ===================== PART 2 ===================== -->
+
+    <section id="part-2">
+      <h2><span class="num">03</span>Part 2 · Recipient confirmation page</h2>
+
+      <h3>Route</h3>
+      <p>
+        <code>/confirm/[orderId]</code> in the <code>foodtoindia/</code>
+        app. Public — no authentication required.
+      </p>
+
+      <h3 id="part-2-security">Security</h3>
+      <p>
+        URL carries <code>?token=[confirmToken]</code>. The page calls
+        <code>/api/confirm-order</code> which validates both order ID and
+        token before any read or write. The public page never touches
+        Firestore directly.
+      </p>
+
+      <div class="card inset">
+        <table>
+          <thead>
+            <tr><th style="width:30%">State</th><th>Page renders</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="pill red">Invalid token</span></td><td>"This link is invalid or has expired."</td></tr>
+            <tr><td><span class="pill grey">Already processed</span></td><td>"This order has already been processed." (delivered / cancelled)</td></tr>
+            <tr><td><span class="pill green">Already confirmed</span></td><td>"You've already confirmed this delivery. If you need to make changes, please reply to our WhatsApp message." No re-submit allowed.</td></tr>
+            <tr><td><span class="pill clay">Pending</span></td><td>Full form (default state).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="part-2-content">Page content</h3>
+
+      <div class="mac">
+        <div class="chrome">
+          <div class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="title">foodtoindia.com/confirm/abc123?token=…</div>
+        </div>
+        <div class="body" style="background:#FFFBF7">
+          <div style="text-align:center; font-family:Georgia,serif; font-size:1.4rem; color:#117150; margin-bottom:1rem">FoodtoIndia</div>
+          <div style="font-size:0.95rem; color:#2D2A26; margin-bottom:1rem">
+            <strong>Arvind</strong> is sending you food from <strong>Mavalli Tiffin Rooms</strong>.<br>
+            <span style="color:#8A837A; font-size:0.85rem">Masala dosa, Filter coffee, Rava idli</span>
+          </div>
+          <div style="background:#F0EDE8; border-radius:10px; padding:0.85rem 1rem; margin:0.5rem 0;">
+            <div style="font-size:0.75rem; color:#8A837A; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem">Your address</div>
+            <div style="font-size:0.92rem; color:#2D2A26; line-height:1.5">
+              Flat 402, Sunshine Apartments<br>
+              MG Road, near Forum Mall<br>
+              Koramangala, Bengaluru
+            </div>
+            <button style="margin-top:0.6rem; background:transparent; border:1px solid #117150; color:#117150; padding:0.3rem 0.8rem; border-radius:6px; font-size:0.82rem; cursor:pointer">Edit</button>
+          </div>
+          <div style="background:#F0EDE8; border-radius:10px; padding:0.85rem 1rem; margin:0.5rem 0">
+            <div style="font-size:0.75rem; color:#8A837A; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem">Delivery time</div>
+            <div style="font-size:0.92rem; color:#2D2A26; margin-bottom:0.6rem">Your order is scheduled for delivery around <strong>1:30 PM IST</strong>.</div>
+            <div style="display:flex; gap:0.5rem">
+              <button style="background:#117150; color:white; border:none; padding:0.4rem 0.9rem; border-radius:6px; font-size:0.85rem; cursor:pointer">This works</button>
+              <button style="background:transparent; border:1px solid #D4CFC7; color:#2D2A26; padding:0.4rem 0.9rem; border-radius:6px; font-size:0.85rem; cursor:pointer">I need a different time</button>
+            </div>
+          </div>
+          <button style="width:100%; background:#117150; color:white; border:none; padding:0.7rem; border-radius:8px; font-size:0.95rem; font-weight:600; margin-top:0.5rem; cursor:pointer">Confirm Delivery</button>
+        </div>
+      </div>
+
+      <h4>Address section</h4>
+      <ul class="clean">
+        <li><strong>Area / Locality</strong> — pre-filled from order; read-only if it determines restaurant availability.</li>
+        <li><strong>Door / Flat No.</strong> — text input.</li>
+        <li><strong>Street / Address Line</strong> — text input.</li>
+        <li><strong>Landmark</strong> — text input. Helper: <em>"Helps the delivery driver find you."</em></li>
+      </ul>
+
+      <h4>Delivery time section</h4>
+      <ul class="clean">
+        <li><strong>Sender picked a time:</strong> show "Your order is scheduled around <span class="var">[Time]</span> IST" with two buttons — "This works" / "I need a different time."</li>
+        <li><strong>No time set:</strong> show the slot picker directly.</li>
+        <li><strong>Slot grid:</strong> 30-min slots in IST. Only slots ≥ 2 h from now. "ASAP" option included <em>during ops hours</em> only.</li>
+      </ul>
+
+      <h3 id="part-2-submit">On submit</h3>
+      <p>
+        <code>/api/confirm-order</code> validates token, then atomically:
+      </p>
+      <ol class="steps">
+        <li>
+          <strong>Updates the order doc</strong> —
+          <code>recipientContact.status = 'confirmed'</code>,
+          <code>confirmedAt</code>, <code>confirmedAddress</code>,
+          <code>confirmedTimeSlot</code>. If time changed,
+          <code>timeChanged = true</code>.
+        </li>
+        <li>
+          <strong>Upserts recipient profile</strong> at
+          <code>recipients/&#123;phoneE164&#125;</code> — sets
+          <code>confirmedAddress</code>, <code>addressSource = 'recipient_confirmed'</code>,
+          <code>addressUpdatedAt</code>, <code>name</code>,
+          <code>lastOrderId</code>.
+        </li>
+        <li>
+          <strong>If time changed,</strong> flag
+          <code>pendingSenderNotification: true</code> so admin can email
+          the sender via the existing Resend integration.
+        </li>
+        <li>
+          <strong>Renders confirmation</strong> — "Thank you! Your delivery
+          details have been confirmed. <span class="var">[Sender First Name]</span>
+          is sending you something special."
+        </li>
+      </ol>
+
+      <h4>Sender notification email (Resend, from admin)</h4>
+      <div class="card inset">
+        <p style="margin:0 0 0.5rem"><strong>Subject:</strong> Delivery time updated for <span class="var">[Recipient Name]</span></p>
+        <p style="margin:0"><strong>Body:</strong> <span class="var">[Recipient Name]</span> has updated the delivery time to <span class="var">[New Time]</span> IST. We'll deliver at the updated time.</p>
+      </div>
+
+      <p style="font-size:0.88rem; color:var(--muted)">
+        Mobile-friendly. Almost every open is from a phone via WhatsApp.
+        Large tap targets, no unnecessary scrolling, single-column layout.
+      </p>
+    </section>
+
+    <!-- ===================== PART 3 ===================== -->
+
+    <section id="part-3">
+      <h2><span class="num">04</span>Part 3 · Dispatch queue enhancements</h2>
+
+      <h3>"Deliver at" field</h3>
+      <p>Editable date/time field on each dispatch-queue row.</p>
+      <div class="card inset">
+        <table>
+          <thead>
+            <tr><th>Source</th><th>Wins when</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sender at checkout</td><td>Default, if nothing else has happened.</td></tr>
+            <tr><td>Recipient via confirmation page</td><td>Overrides sender's time. Highest signal of recipient intent.</td></tr>
+            <tr><td>Ops manual edit</td><td>Overrides both — ops captured a verbal commitment over WhatsApp.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Sort &amp; visual cues</h4>
+      <ul class="clean">
+        <li>Within each section (Overdue · ASAP · Scheduled), sort by "Deliver at" ascending. Untimed orders sort last.</li>
+        <li>Within 30 min of delivery window → <span class="pill yellow">soon</span> yellow background.</li>
+        <li>Past delivery window → <span class="pill red">overdue</span> red styling (existing pattern).</li>
+      </ul>
+
+      <h3>Ops address editing</h3>
+      <ul class="clean">
+        <li>Click to open address form on a row. Edit door/flat, street, landmark, area, city.</li>
+        <li>On save, write to <em>both</em>: the order's delivery address and the global profile <code>recipients/&#123;phoneE164&#125;</code> with <code>addressSource = 'ops_updated'</code>.</li>
+        <li>Show a transient "Address updated" toast.</li>
+      </ul>
+
+      <h3 id="part-3-status">Status badges on each row</h3>
+      <div class="swatches">
+        <div class="swatch">
+          <div><span class="dot" style="background:#0F7A52"></span><span class="label">Ready</span> <span class="pill green">green</span></div>
+          <div class="desc">Confirmed address + sender time. Dispatch without contacting.</div>
+        </div>
+        <div class="swatch">
+          <div><span class="dot" style="background:#0F7A52"></span><span class="label">Confirmed</span> <span class="pill green">green</span></div>
+          <div class="desc">Recipient confirmed via the page. Both address &amp; time set.</div>
+        </div>
+        <div class="swatch">
+          <div><span class="dot" style="background:#D4A84B"></span><span class="label">WA sent</span> <span class="pill yellow">yellow</span></div>
+          <div class="desc">WhatsApp sent, awaiting reply. Timestamp visible.</div>
+        </div>
+        <div class="swatch">
+          <div><span class="dot" style="background:#8A837A"></span><span class="label">Pending</span> <span class="pill grey">grey</span></div>
+          <div class="desc">No contact attempt yet.</div>
+        </div>
+        <div class="swatch">
+          <div><span class="dot" style="background:#C44A2F"></span><span class="label">No response</span> <span class="pill red">red</span></div>
+          <div class="desc">WhatsApp sent &gt; 4 h ago, no recipient action. <em>Phase 1: ops judges manually from timestamp.</em></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PART 4 ===================== -->
+
+    <section id="part-4">
+      <h2><span class="num">05</span>Part 4 · Recipient profile &amp; repeat customers</h2>
+
+      <h3>Profile collection</h3>
+      <p>
+        New Firestore collection <code>recipients/&#123;phoneE164&#125;</code>,
+        keyed by the recipient's phone in E.164 format
+        (e.g. <code>+919003712800</code>).
+      </p>
+
+      <div class="schema"><span class="c">// recipients/{phoneE164}</span>
+{
+  <span class="k">name</span>: <span class="t">string</span>,
+  <span class="k">confirmedAddress</span>: {
+    <span class="ind">·</span> <span class="k">doorFlat</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">street</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">landmark</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">area</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">city</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">state</span>: <span class="t">string</span>,
+    <span class="ind">·</span> <span class="k">pincode</span>: <span class="t">string</span>
+  },
+  <span class="k">addressSource</span>: <span class="t">'recipient_confirmed'</span> <span class="punc">|</span> <span class="t">'ops_updated'</span>,
+  <span class="k">addressUpdatedAt</span>: <span class="t">timestamp</span>,
+  <span class="k">lastOrderId</span>: <span class="t">string</span>
+}</div>
+
+      <h3>When to update</h3>
+      <ul class="clean">
+        <li><strong>Recipient confirms via the public page</strong> → <code>addressSource = 'recipient_confirmed'</code>.</li>
+        <li><strong>Ops edits address in dispatch queue</strong> → <code>addressSource = 'ops_updated'</code>.</li>
+        <li><strong>Last write wins,</strong> regardless of source.</li>
+      </ul>
+
+      <h3>When a new order arrives</h3>
+      <p>Look up the recipient phone (E.164) in <code>recipients/</code>:</p>
+      <div class="row">
+        <div class="card">
+          <h4 style="margin-top:0">Profile address exists</h4>
+          <ul class="clean">
+            <li>Pre-fill full address on new order from profile.</li>
+            <li>Show "Confirmed address on file" badge in dispatch row.</li>
+            <li>If sender also picked a time → <span class="pill green">Ready</span>.</li>
+            <li>If no time → WhatsApp asks <em>only</em> about timing.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">No profile</h4>
+          <ul class="clean">
+            <li>Use whatever address the sender provided.</li>
+            <li>Follow standard WhatsApp template flow (variants 3–6).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="banner" style="background:linear-gradient(180deg,#FEECEA 0%,#FCE0DC 100%); border-color:#F0B8AB">
+        <div class="icon">⚠️</div>
+        <div class="body" style="color:#7A1F0A">
+          <strong>Edge case:</strong> if the sender entered a different
+          area/city than what's on the profile, do <em>not</em> auto-fill
+          from the profile. Recipient may have moved, or the sender is
+          sending to a different location. Treat as a new address.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SCHEMA SUMMARY ===================== -->
+
+    <section id="schema">
+      <h2><span class="num">06</span>Firestore schema summary</h2>
+
+      <h3>New fields on order doc · <code>users/&#123;uid&#125;/orders/&#123;id&#125;</code></h3>
+      <div class="schema">{
+  <span class="c">// ... existing fields untouched ...</span>
+  <span class="k">recipientContact</span>: {
+    <span class="ind">·</span> <span class="k">whatsappSentAt</span>: <span class="t">timestamp</span> <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">confirmToken</span>: <span class="t">string</span> <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">confirmationPageUrl</span>: <span class="t">string</span> <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">status</span>: <span class="t">'pending'</span> <span class="punc">|</span> <span class="t">'confirmed'</span> <span class="punc">|</span> <span class="t">'no_response'</span>,
+    <span class="ind">·</span> <span class="k">confirmedAt</span>: <span class="t">timestamp</span> <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">confirmedAddress</span>: { <span class="k">doorFlat</span>, <span class="k">street</span>, <span class="k">landmark</span>, <span class="k">area</span>, <span class="k">city</span>, <span class="k">state</span>, <span class="k">pincode</span> } <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">confirmedTimeSlot</span>: <span class="t">string</span> <span class="punc">|</span> <span class="t">null</span>,
+    <span class="ind">·</span> <span class="k">timeChanged</span>: <span class="t">boolean</span>,
+    <span class="ind">·</span> <span class="k">pendingSenderNotification</span>: <span class="t">boolean</span>  <span class="c">// admin polls this to send email</span>
+  }
+}</div>
+
+      <h3>New top-level collection · <code>recipients/&#123;phoneE164&#125;</code></h3>
+      <div class="schema">{
+  <span class="k">name</span>: <span class="t">string</span>,
+  <span class="k">confirmedAddress</span>: { <span class="k">doorFlat</span>, <span class="k">street</span>, <span class="k">landmark</span>, <span class="k">area</span>, <span class="k">city</span>, <span class="k">state</span>, <span class="k">pincode</span> },
+  <span class="k">addressSource</span>: <span class="t">'recipient_confirmed'</span> <span class="punc">|</span> <span class="t">'ops_updated'</span>,
+  <span class="k">addressUpdatedAt</span>: <span class="t">timestamp</span>,
+  <span class="k">lastOrderId</span>: <span class="t">string</span>
+}</div>
+    </section>
+
+    <!-- ===================== OUT OF SCOPE ===================== -->
+
+    <section id="out-of-scope">
+      <h2><span class="num">07</span>What this does NOT include (intentionally)</h2>
+      <div class="card gotchas">
+        <div class="gotcha">
+          <div class="mark">×</div>
+          <div>
+            <strong>WhatsApp Business API / Twilio integration.</strong>
+            We're using manual WhatsApp via deep links. Graduate to the API
+            when volume exceeds <em>100 orders/week</em>.
+          </div>
+        </div>
+        <div class="gotcha">
+          <div class="mark">×</div>
+          <div>
+            <strong>Automated WhatsApp sending.</strong>
+            Ops clicks the button manually. No cron-based auto-sending.
+          </div>
+        </div>
+        <div class="gotcha">
+          <div class="mark">×</div>
+          <div>
+            <strong>AI/LLM for parsing WhatsApp replies.</strong>
+            Ops reads replies and updates the dashboard manually. The
+            confirmation page handles structured data capture.
+          </div>
+        </div>
+        <div class="gotcha">
+          <div class="mark">×</div>
+          <div>
+            <strong>Reminder system for ops.</strong>
+            "Deliver at" sorting + yellow/red visual indicators serve as
+            the reminder. No separate notification system yet.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DELTAS ===================== -->
+
+    <section id="deltas">
+      <h2><span class="num">08</span>Implementation deltas</h2>
+      <p>
+        For the running log of design choices made during implementation
+        that depart from or interpret this spec, see
+        <a href="implementation-notes.html"><strong>implementation-notes.html</strong></a>.
+        Key deltas already known:
+      </p>
+      <ul class="clean">
+        <li><strong>Order doc shape:</strong> the existing <code>recipient.*</code> fields stay unchanged. The 7-field structured address only appears in <code>recipientContact.confirmedAddress</code> and <code>recipients/&#123;phoneE164&#125;.confirmedAddress</code>.</li>
+        <li><strong>Profile lookup:</strong> Phase 1 writes profiles when the recipient confirms. The auto-fill on incoming orders (Part 4 "when a new order arrives") is deferred to phase 2.</li>
+        <li><strong>Order lookup from public page:</strong> uses <code>collectionGroup('orders')</code> since the URL only carries the order ID, not the uid.</li>
+        <li><strong>Time-change email:</strong> sent from admin (existing Resend infra). foodtoindia writes a flag.</li>
+        <li><strong>Field naming:</strong> spec says <code>recipient.recipientName</code>; doc field is <code>recipient.name</code>. Implementation uses the doc.</li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      Spec authored 2026-05-18 · HTML rendition designed for reading, not editing —
+      <code>FoodToIndia_WhatsApp_Confirmation_Spec.md</code> remains the editable source.
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

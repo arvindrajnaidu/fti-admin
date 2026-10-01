@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin · Grocery Surface — Design + Mockups</title>
+<style>
+  :root{
+    --green:#117150;--green-dark:#0E5D40;--green-soft:#E8F4ED;
+    --orange:#E07B3A;--orange-soft:#FFEFE0;
+    --ink-0:#FFFFFF;--ink-50:#F6F7F9;--ink-100:#E5E7EB;--ink-200:#D1D5DB;
+    --ink-300:#9CA3AF;--ink-400:#6B7280;--ink-500:#4B5563;--ink-600:#374151;
+    --ink-700:#1F2937;--ink-900:#0A0A0A;
+    --muted:#545454;--subtle:#767676;
+    --border:#E5E7EB;--border-strong:#CFD3D8;--bg:#FFFFFF;--canvas:#F6F7F9;
+    --sand:#FAF1E5;--sand-strong:#F1E5D0;
+    --amber-bg:#FFF7E6;--amber-bd:#F0D38A;
+    --blue-bg:#EAF2FB;--blue-bd:#B9D4F0;
+    --accent:#0E5D40;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--canvas);color:var(--ink-900);
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.55;font-size:15px;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+  header.hero{background:linear-gradient(135deg,#0E5D40 0%,#1A9655 100%);
+    color:#fff;padding:36px 0 28px;margin-bottom:24px;}
+  header.hero .wrap{padding-bottom:0;}
+  header.hero h1{margin:0 0 6px;font-size:28px;font-weight:800;letter-spacing:-0.02em;}
+  header.hero p{margin:0;opacity:.92;font-size:14.5px;}
+  .tag{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;background:rgba(255,255,255,.18);padding:4px 10px;
+    border-radius:999px;margin-bottom:14px;}
+  h2{font-size:21px;font-weight:800;letter-spacing:-0.01em;margin:36px 0 12px;
+    padding-bottom:8px;border-bottom:2px solid var(--green-soft);}
+  h2 .n{color:var(--green);margin-right:8px;}
+  h3{font-size:15.5px;font-weight:700;margin:22px 0 8px;}
+  p{margin:10px 0;} ul,ol{margin:10px 0;padding-left:22px;} li{margin:6px 0;}
+  code{background:#F0F1F3;border:1px solid var(--border);border-radius:5px;
+    padding:1px 5px;font-size:12.5px;
+    font-family:"IBM Plex Mono","SF Mono",SFMono-Regular,Menlo,Consolas,monospace;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;}
+  th,td{text-align:left;padding:9px 11px;border:1px solid var(--border);
+    vertical-align:top;}
+  th{background:var(--green-soft);font-weight:700;}
+  .callout{border-radius:10px;padding:14px 16px;margin:14px 0;font-size:14px;
+    border:1px solid transparent;}
+  .callout.amber{background:var(--amber-bg);border-color:var(--amber-bd);}
+  .callout.blue{background:var(--blue-bg);border-color:var(--blue-bd);}
+  .callout.green{background:var(--green-soft);border-color:#BFE0CC;}
+  a{color:var(--green-dark);}
+  .breadcrumb{font-size:13px;color:var(--muted);margin-bottom:12px;}
+  .breadcrumb a{color:var(--green-dark);text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+
+  /* ─── Admin-shell mockup ───────────────────────────────────────── */
+  .mock-label{font-size:12px;font-weight:700;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px;}
+  .admin-frame{border:1px solid var(--border-strong);border-radius:10px;
+    overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.06);
+    display:grid;grid-template-columns:220px 1fr;min-height:420px;}
+  .admin-frame.narrow{grid-template-columns:200px 1fr;}
+  .admin-sidebar{background:#fff;border-right:1px solid var(--ink-100);
+    padding:14px 8px 12px;font-size:12.5px;}
+  .admin-sidebar .brand{display:flex;align-items:baseline;gap:6px;
+    padding:0 8px 12px;}
+  .admin-sidebar .brand .bn{font-weight:700;color:var(--ink-900);font-size:13px;
+    letter-spacing:-0.01em;}
+  .admin-sidebar .brand .tag-admin{font-size:9.5px;font-weight:600;
+    color:var(--ink-400);text-transform:uppercase;letter-spacing:.08em;}
+  .admin-sidebar .sect{font-size:9.5px;font-weight:600;color:var(--ink-400);
+    text-transform:uppercase;letter-spacing:.08em;padding:10px 12px 4px;}
+  .admin-sidebar .sect.sub{padding-left:18px;color:var(--ink-300);}
+  .admin-sidebar .item{display:flex;align-items:center;gap:9px;
+    padding:5px 12px;border-radius:6px;color:var(--ink-600);
+    font-size:12.5px;cursor:default;}
+  .admin-sidebar .item.sub{padding-left:22px;}
+  .admin-sidebar .item .ic{width:14px;height:14px;display:inline-flex;
+    align-items:center;justify-content:center;color:var(--ink-400);font-size:12px;}
+  .admin-sidebar .item.active{background:var(--ink-50);color:var(--ink-900);
+    font-weight:500;position:relative;}
+  .admin-sidebar .item.active::before{content:"";position:absolute;left:0;
+    top:6px;bottom:6px;width:2px;background:var(--accent);border-radius:0 2px 2px 0;}
+  .admin-sidebar .item.active .ic{color:var(--ink-900);}
+  .admin-sidebar hr{border:none;border-top:1px solid var(--ink-100);margin:10px 6px;}
+
+  .admin-main{background:#fff;display:flex;flex-direction:column;}
+  .admin-top{height:42px;border-bottom:1px solid var(--ink-100);
+    display:flex;align-items:center;padding:0 18px;gap:8px;font-size:12px;
+    color:var(--ink-500);}
+  .admin-top .crumb-active{color:var(--ink-900);font-weight:500;}
+  .admin-top .env-pill{margin-left:auto;font-size:9.5px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.08em;background:#E6F4EA;
+    color:#0E5D40;padding:2px 6px;border-radius:4px;}
+  .admin-body{padding:18px 22px;flex:1;background:#fff;}
+  .admin-body h4{margin:0 0 4px;font-size:18px;font-weight:600;
+    letter-spacing:-0.01em;color:var(--ink-900);}
+  .admin-body .subtitle{font-size:12.5px;color:var(--ink-500);margin-bottom:14px;}
+
+  .pillrow{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .pillrow .p{font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:999px;
+    background:var(--ink-50);color:var(--ink-600);border:1px solid var(--ink-100);}
+  .pillrow .p.on{background:var(--ink-900);color:#fff;border-color:var(--ink-900);}
+
+  .ftbl{width:100%;border-collapse:collapse;font-size:12px;
+    border:1px solid var(--ink-100);border-radius:6px;overflow:hidden;}
+  .ftbl th{background:var(--ink-50);color:var(--ink-500);font-size:10.5px;
+    font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+    padding:7px 9px;text-align:left;border-bottom:1px solid var(--ink-100);}
+  .ftbl td{padding:8px 9px;border-bottom:1px solid var(--ink-100);
+    color:var(--ink-700);}
+  .ftbl tr:last-child td{border-bottom:none;}
+  .ftbl .mono{font-family:"IBM Plex Mono","SF Mono",monospace;font-size:11.5px;}
+  .ftbl .muted{color:var(--ink-400);}
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;
+    border-radius:999px;}
+  .badge.success{background:#E6F4EA;color:#1E6F3E;}
+  .badge.warn{background:#FEF3CD;color:#8A6411;}
+  .badge.ink{background:var(--ink-50);color:var(--ink-600);
+    border:1px solid var(--ink-100);}
+  .badge.grocery{background:var(--green-soft);color:var(--green-dark);}
+  .badge.food{background:var(--orange-soft);color:#9A4A14;}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  @media (max-width:820px){.twocol{grid-template-columns:1fr;}.admin-frame{grid-template-columns:1fr;}.admin-sidebar{display:none;}}
+
+  .legend{font-size:12px;color:var(--muted);margin-top:6px;}
+  .legend strong{color:var(--ink-900);}
+
+  .now-table tr.now td:first-child{background:#E6F4EA;color:#1E6F3E;font-weight:700;}
+  .now-table tr.next td:first-child{background:#EAF2FB;color:#1F4F87;font-weight:700;}
+  .now-table tr.later td:first-child{background:var(--ink-50);color:var(--ink-500);font-weight:700;}
+  .now-table tr.defer td:first-child{background:#FEF3CD;color:#8A6411;font-weight:700;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="tag">v0.5 · NOW batch shipped on `grocery` branch</span>
+    <h1>Admin · Grocery Orders &amp; Dispatch</h1>
+    <p>Bring grocery into the admin nav. Split Ops into Food and Grocery so dispatchers see one queue at a time. Keep the existing food surfaces untouched.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="breadcrumb">
+  <a href="../../../website/docs/grocery/separated-experiences-design.html">← consumer-side: separated /food + /grocery experiences</a>
+  · admin counterpart
+</div>
+
+<div class="callout green" style="background:#E8F5E9;border-color:#C8E6C9;">
+  <strong>v0.5 — NOW batch shipped on the <code>grocery</code> branch.</strong> All six NOW items from §7 landed:
+  <ul style="margin:6px 0 0;">
+    <li>Sidebar restructure — Ops split into Food / Grocery sub-groups; Store Credits hoisted to a new Account section; breadcrumb gained the sub-group label.</li>
+    <li><code>pages/api/grocery-orders.js</code> — sibling endpoint reading <code>users/{uid}/grocery_orders</code> with its own <code>global.groceryOrdersCache</code>. Food path untouched.</li>
+    <li><code>lib/formatMoney.js</code> — USD + INR formatter.</li>
+    <li><code>lib/groceryOrder.js</code> — shared display helpers (source label, abbreviated <code>pi_*</code>, Stripe Dashboard URL, store formatter, item count/preview).</li>
+    <li><code>pages/grocery/orders.js</code> — list with source badge + store area + USD totals; status filter pills.</li>
+    <li><code>pages/grocery/dispatch.js</code> — open-queue view; relative timestamps; Open / Last 24h / All filters.</li>
+    <li><code>pages/grocery/orders/[id].js</code> — minimal detail page per the v0.4 locked scope. <code>InternalNotes</code> extended with a <code>collection</code> prop; <code>/api/order-notes</code> whitelists <code>orders</code> + <code>grocery_orders</code> so the food path is unchanged.</li>
+  </ul>
+  Build passes (~3.4 kB list/dispatch, ~10.1 kB detail). NEXT item 7a (consumer-side widening of the <code>store</code> payload to include name + area) is still pending in the website repo — admin degrades gracefully without it.
+</div>
+
+<div class="callout green">
+  <strong>The decision in one sentence:</strong>
+  Ops are mode-specific (different SLAs, different vendors, different fulfilment paths), so the admin nav splits Ops into <strong>Food</strong> and <strong>Grocery</strong> sub-groups — not a single mixed queue with a filter chip. Reports and Marketing stay shared for now; we don't have enough grocery volume to justify per-mode dashboards yet.
+</div>
+
+<div class="callout amber">
+  <strong>Why this plan exists.</strong> The consumer plan (<a href="../../../website/docs/grocery/separated-experiences-design.html">separated-experiences-design.html</a>) deliberately scoped the admin app out — ops were promised "an admin home for grocery" in v0.4.2 but it never got drawn. This doc closes that gap: where grocery goes in the sidebar, what the queues look like, and how dispatch behaves now that there are two fulfilment paths.
+</div>
+
+<div class="callout amber">
+  <strong>Current state — what's actually broken today.</strong> Verified against the code:
+  <ul style="margin:6px 0 0;">
+    <li>Grocery orders are written to a <em>separate</em> subcollection: <code>users/{uid}/grocery_orders/{paymentIntent.id}</code> (see <code>website/lib/grocery-order.js:320-324</code>). Doc IS stamped with <code>orderType: "grocery"</code>, but lives in a different collection from food.</li>
+    <li>The admin's <code>pages/api/orders.js</code> only walks <code>users/{uid}/orders</code>. Grocery is therefore <strong>invisible to ops today, not leaking</strong> into food queues. (The opposite of what v0.1 of this doc claimed — corrected after a code review pass.)</li>
+    <li>Order ID = <code>paymentIntent.id</code> (Stripe <code>pi_*</code>) — not a hex slug like food.</li>
+    <li>Charged amounts are <strong>USD cents</strong> (<code>chargedAmountCents</code>, currency <code>"usd"</code> at <code>grocery-order.js:132</code>). Food is INR paise. Admin display must handle both.</li>
+  </ul>
+  Fixing the invisibility is the floor for shipping grocery to real customers.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="why"><span class="n">1.</span>Why split Ops, not Reports</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<p>The consumer plan separated <em>experiences</em> because users are intent-driven and don't browse across modes. The admin counterpart is the same shape, but the cut runs through a different layer: <strong>Ops, not Reports.</strong></p>
+
+<table>
+  <tr><th>Area</th><th>Split by mode?</th><th>Why</th></tr>
+  <tr>
+    <td><strong>Ops</strong> (Orders, Dispatch, Inbox)</td>
+    <td><strong>Yes</strong></td>
+    <td>Different SLAs (food: hot, &lt;2h; grocery: scheduled, multi-hour). Different fulfilment paths (food: direct-to-restaurant calls; grocery: Instamart/Blinkit upstream). Different exception handling. A dispatcher staring at one queue gets faster decisions than one filtering between two.</td>
+  </tr>
+  <tr>
+    <td><strong>Reports</strong> (Analytics, Customers, Attribution, Referrals, Upsell)</td>
+    <td><strong>Not yet</strong></td>
+    <td>A customer is a customer regardless of which product they buy. We want unified LTV, attribution, referral attribution. Grocery volume is too thin to support its own cohort views. Revisit when grocery clears ~50 orders/week.</td>
+  </tr>
+  <tr>
+    <td><strong>Marketing</strong> (Email Campaigns, Templates, Promo Codes)</td>
+    <td><strong>Not yet</strong></td>
+    <td>Same reason — and most outreach is account-level, not mode-level. Per-mode promo codes already work via the existing scope field; no nav split needed for that.</td>
+  </tr>
+  <tr>
+    <td><strong>Store Credits, Abandoned Carts</strong></td>
+    <td><strong>Decide later</strong></td>
+    <td>Store credits are account-scoped (a credit applies anywhere) — leave shared. Abandoned-cart emails are mode-coupled (the email links into <code>/food</code> or <code>/grocery</code>) but the queue + sending tools are shared. Cross that bridge when grocery abandoned-cart tracking lands.</td>
+  </tr>
+</table>
+
+<div class="callout blue">
+  <strong>Decisions locked</strong> (the contract for this PR):
+  <ul style="margin:8px 0 0;">
+    <li><strong>Nav structure:</strong> Ops becomes two sub-groups — <strong>Ops · Food</strong> and <strong>Ops · Grocery</strong>. Reports, Marketing, and the remaining shared items stay as today.</li>
+    <li><strong>Routes:</strong> grocery surfaces live under <code>/grocery/*</code>. Existing food paths (<code>/</code>, <code>/orders</code>, <code>/inbox</code>) keep their URLs — no rename in this PR. (Whether food eventually moves to <code>/food/*</code> mirrors the consumer-side URL migration and is its own decision.)</li>
+    <li><strong>Scope (NOW):</strong> two grocery pages — <code>/grocery/orders</code> and <code>/grocery/dispatch</code>. Nothing else.</li>
+    <li><strong>Dispatch:</strong> separate page per mode (<a href="#dispatch">§5</a>). Trade-offs called out; the call is "separate, with a clear pivot point if/when it bites."</li>
+    <li><strong>Backend:</strong> a new sibling endpoint <code>/api/grocery-orders</code> reads the <code>grocery_orders</code> subcollection. The existing <code>/api/orders</code> is untouched (still scans <code>orders</code> only). No mixing in a single route — they're different doc shapes (different currency, different ID format, different field set), and a thin shared <code>buildOrdersResponse(collection, options)</code> helper is cheaper than the per-row mode branching a merged route would need. See <a href="#data">§6</a>.</li>
+    <li><strong>Currency:</strong> grocery is USD (Stripe charge currency), food is INR. Admin renders each in its native currency — no conversion in this PR. Ops-facing INR equivalent for grocery (for buying from Instamart) is a NEXT item.</li>
+    <li><strong>Deferred:</strong> grocery-specific reports, abandoned-cart emails, store credits scoping, attribution, referrals. Listed in <a href="#plan">§7</a>.</li>
+  </ul>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="nav"><span class="n">2.</span>Nav restructure</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<p>Today's nav (see <code>components/layout/AdminShell.jsx:29-58</code>) is three flat sections — Ops, Reports, Marketing. The change is small and additive: Ops gains a sub-grouping with two labelled sub-sections. Reports and Marketing are untouched.</p>
+
+<div class="twocol">
+  <div>
+    <div class="mock-label">Before · today</div>
+    <div class="admin-frame narrow" style="grid-template-columns:1fr;min-height:auto;">
+      <div class="admin-sidebar">
+        <div class="brand"><span class="bn">FoodtoIndia</span><span class="tag-admin">Admin</span></div>
+        <div class="sect">Ops</div>
+        <div class="item"><span class="ic">🚚</span>Dispatch</div>
+        <div class="item"><span class="ic">📃</span>Orders</div>
+        <div class="item"><span class="ic">📥</span>Inbox</div>
+        <div class="item"><span class="ic">🛒</span>Abandoned Carts</div>
+        <div class="item"><span class="ic">👛</span>Store Credits</div>
+        <div class="sect">Reports</div>
+        <div class="item"><span class="ic">📈</span>Analytics</div>
+        <div class="item"><span class="ic">👥</span>Customers</div>
+        <div class="item"><span class="ic">🔍</span>Attribution</div>
+        <div class="item"><span class="ic">🎁</span>Referrals</div>
+        <div class="item"><span class="ic">✨</span>Upsell</div>
+        <div class="sect">Marketing</div>
+        <div class="item"><span class="ic">✉</span>Email Campaigns</div>
+        <div class="item"><span class="ic">📄</span>Email Templates</div>
+        <div class="item"><span class="ic">🎫</span>Promo Codes</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="mock-label">After · proposed</div>
+    <div class="admin-frame narrow" style="grid-template-columns:1fr;min-height:auto;">
+      <div class="admin-sidebar">
+        <div class="brand"><span class="bn">FoodtoIndia</span><span class="tag-admin">Admin</span></div>
+        <div class="sect">Ops</div>
+        <div class="sect sub">Food</div>
+        <div class="item sub"><span class="ic">🚚</span>Dispatch</div>
+        <div class="item sub"><span class="ic">📃</span>Orders</div>
+        <div class="item sub"><span class="ic">📥</span>Inbox</div>
+        <div class="item sub"><span class="ic">🛒</span>Abandoned Carts</div>
+        <div class="sect sub">Grocery</div>
+        <div class="item sub active"><span class="ic">📃</span>Orders</div>
+        <div class="item sub"><span class="ic">🚚</span>Dispatch</div>
+        <div class="sect">Reports</div>
+        <div class="item"><span class="ic">📈</span>Analytics</div>
+        <div class="item"><span class="ic">👥</span>Customers</div>
+        <div class="item"><span class="ic">🔍</span>Attribution</div>
+        <div class="item"><span class="ic">🎁</span>Referrals</div>
+        <div class="item"><span class="ic">✨</span>Upsell</div>
+        <div class="sect">Account-level</div>
+        <div class="item"><span class="ic">👛</span>Store Credits</div>
+        <div class="sect">Marketing</div>
+        <div class="item"><span class="ic">✉</span>Email Campaigns</div>
+        <div class="item"><span class="ic">📄</span>Email Templates</div>
+        <div class="item"><span class="ic">🎫</span>Promo Codes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="legend">Sub-section labels (<strong>Food</strong>, <strong>Grocery</strong>) render at a slightly indented, lighter weight than the top-level <strong>Ops</strong> label, so the hierarchy is visible without a heavy header. The existing collapsed-sidebar mode (icons only) renders the same two sub-groupings as a thin divider — same pattern <code>AdminShell.jsx:188-190</code> already uses between top-level sections.</p>
+
+<div class="callout amber">
+  <strong>Why pull Store Credits out of Ops?</strong> It's the one Ops item that isn't mode-specific. Once Ops becomes <em>per-mode</em>, "Store Credits" sitting under Food would be misleading (credits apply to grocery too). Two options:
+  <ol>
+    <li><strong>Hoist it to a new "Account-level" section</strong> (shown above) — keeps the per-mode boundary clean.</li>
+    <li>Leave it under Ops at the top (above the Food/Grocery split), unlabelled.</li>
+  </ol>
+  Recommendation: option 1. Reads correctly. Cost is one extra section header in the sidebar. If this feels like over-structure, fall back to option 2.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="urls"><span class="n">3.</span>Route structure</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<table>
+  <tr><th>Route</th><th>What it is</th><th>Today</th></tr>
+  <tr><td><code>/</code></td><td>Food Dispatch (unchanged)</td><td>same — <code>pages/index.js</code></td></tr>
+  <tr><td><code>/orders</code></td><td>Food Orders list (unchanged)</td><td>same — <code>pages/orders.js</code></td></tr>
+  <tr><td><code>/inbox</code></td><td>Food Inbox (unchanged)</td><td>same — <code>pages/inbox.js</code></td></tr>
+  <tr><td><code>/abandoned-carts</code></td><td>Food abandoned carts (unchanged)</td><td>same — <code>pages/abandoned-carts.js</code></td></tr>
+  <tr><td colspan="3" style="background:var(--sand);font-weight:700;text-align:center;">New — Grocery</td></tr>
+  <tr><td><code>/grocery/orders</code></td><td>Grocery Orders list</td><td><strong>new</strong> — <code>pages/grocery/orders.js</code></td></tr>
+  <tr><td><code>/grocery/orders/[id]</code></td><td>Grocery Order detail — <strong>minimal version</strong> (recipient, line items, totals, Stripe PI link, store metadata, notes). No delivery-confirm modal, no WA action panel.</td><td><strong>new</strong> — <code>pages/grocery/orders/[id].js</code></td></tr>
+  <tr><td><code>/grocery/dispatch</code></td><td>Grocery Dispatch queue</td><td><strong>new</strong> — <code>pages/grocery/dispatch.js</code></td></tr>
+</table>
+
+<p>Route shape mirrors the consumer plan's <code>/grocery/*</code> namespace. Pages Router → these are real folders/files under <code>pages/grocery/</code>; no dynamic-segment trickery needed.</p>
+
+<div class="callout amber">
+  <strong>Why not rename the food pages to <code>/food/*</code> in this PR?</strong> Two reasons. (1) Food paths are baked into bookmarks, internal Slack links, and the welcome email — a rename needs back-compat redirects and isn't free. (2) The consumer-side URL migration to <code>/food/*</code> is itself deferred in their plan. We mirror that timing — when consumer renames, admin renames in the same PR for symmetry. Until then, the asymmetry is honest: food has the historical default route, grocery is the new namespaced surface.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="orders"><span class="n">4.</span><code>/grocery/orders</code></h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<p>Mirrors the existing food <code>/orders</code> page in shape (PageHeader + segmented filter pills + DataTable), with columns rewritten for the grocery order shape. Reuses the existing primitives (<code>TableShell/Th/Tr/Td/Pill</code>) verbatim — same look, same behaviors.</p>
+
+<div class="mock-label">Desktop · /grocery/orders</div>
+<div class="admin-frame">
+  <div class="admin-sidebar">
+    <div class="brand"><span class="bn">FoodtoIndia</span><span class="tag-admin">Admin</span></div>
+    <div class="sect">Ops</div>
+    <div class="sect sub">Food</div>
+    <div class="item sub"><span class="ic">🚚</span>Dispatch</div>
+    <div class="item sub"><span class="ic">📃</span>Orders</div>
+    <div class="item sub"><span class="ic">📥</span>Inbox</div>
+    <div class="item sub"><span class="ic">🛒</span>Abandoned Carts</div>
+    <div class="sect sub">Grocery</div>
+    <div class="item sub active"><span class="ic">📃</span>Orders</div>
+    <div class="item sub"><span class="ic">🚚</span>Dispatch</div>
+    <div class="sect">Reports</div>
+    <div class="item"><span class="ic">📈</span>Analytics</div>
+    <div class="item"><span class="ic">👥</span>Customers</div>
+  </div>
+  <div class="admin-main">
+    <div class="admin-top">
+      <span>Dashboard</span>
+      <span style="color:var(--ink-300);">›</span>
+      <span>Grocery</span>
+      <span style="color:var(--ink-300);">›</span>
+      <span class="crumb-active">Orders</span>
+      <span class="env-pill">Dev</span>
+    </div>
+    <div class="admin-body">
+      <h4>Grocery Orders <span class="badge grocery" style="vertical-align:middle;margin-left:6px;">Instamart</span></h4>
+      <div class="subtitle">All grocery orders, newest first. Provider shown for ops debugging only — customer never sees it.</div>
+      <div class="pillrow">
+        <span class="p on">All</span>
+        <span class="p">Created</span>
+        <span class="p">Cancelled</span>
+      </div>
+      <table class="ftbl">
+        <thead><tr>
+          <th>Order</th><th>Placed</th><th>Sender</th><th>Source</th>
+          <th>Recipient · Store</th><th>Items</th><th>Total (USD)</th>
+          <th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">pi_3Q…F9C12</td>
+            <td>Today · 2:14 PM</td>
+            <td>adda das<br><span class="muted">adda+test@…</span></td>
+            <td><span class="badge grocery">Instamart</span></td>
+            <td>Mom · Annanagar East<br><span class="muted">store 8821 · T Nagar</span></td>
+            <td>12 items<br><span class="muted">atta · dal · curd · …</span></td>
+            <td>$15.42</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>⋯</td>
+          </tr>
+          <tr>
+            <td class="mono">pi_3Q…8E7A</td>
+            <td>Today · 11:02 AM</td>
+            <td>Priya M</td>
+            <td><span class="badge grocery">Instamart</span></td>
+            <td>Sister · Bandra W<br><span class="muted">store 1142 · Khar West</span></td>
+            <td>4 items</td>
+            <td>$5.55</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>⋯</td>
+          </tr>
+          <tr>
+            <td class="mono">pi_3Q…87C0</td>
+            <td>Yesterday · 7:48 PM</td>
+            <td>Anil R</td>
+            <td><span class="badge ink">Blinkit</span></td>
+            <td>Dad · Banjara Hills<br><span class="muted">store BLK-22 · Jubilee Hills</span></td>
+            <td>8 items</td>
+            <td>$11.02</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>⋯</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="legend"><strong>Columns rationale:</strong> Order ID (mono — Stripe <code>pi_*</code>; full ID copyable, abbreviated for display), Placed (createdAt in IST), Sender (display name + email subtitle, matches food Orders style), Recipient · Store (one cell — the store is provider-resolved from the recipient's address, so they belong together), Items (count + first-three subtitle — full list lives in the detail page), Total in USD (grocery's actual charge currency), Status pill, overflow menu. <strong>Filter pills reflect actual statuses today</strong> — only <code>created</code> and <code>cancelled</code> exist on the doc; Confirmed / Out-for-delivery / Delivered are aspirational and only appear once the consumer side starts writing them. <strong>Dispatch lives on the dispatch page</strong>, not here — this page is the historical ledger view.</p>
+
+<div class="callout blue">
+  <strong>Order ID — full Stripe ID, abbreviated.</strong> Grocery doc IDs are Stripe PaymentIntent IDs (<code>pi_3Q5xK2A...</code>) per <code>grocery-order.js:319</code>. Render abbreviated (<code>pi_3Q…F9C12</code>) with a copy-full-ID affordance, since the full ID is what pastes into Stripe Dashboard and Slack threads. The mode is already clear from the page (no prefix scheme needed — earlier v0.1 "<code>G-</code> prefix" idea was based on a wrong assumption about doc-ID shape).
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="dispatch"><span class="n">5.</span><code>/grocery/dispatch</code> — and the merge-vs-split call</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<div class="callout amber">
+  <strong>The open question, stated plainly.</strong> Two options for dispatch:
+  <ol>
+    <li><strong>Separate</strong> — <code>/</code> stays food-only dispatch, <code>/grocery/dispatch</code> is its own page. Two queues, one per mode.</li>
+    <li><strong>Merged</strong> — one dispatch page lists everything in flight, with a mode column / filter chip. One queue.</li>
+  </ol>
+  Below is the trade-off. The recommendation is <strong>separate</strong>.
+</div>
+
+<table>
+  <tr><th></th><th>Separate (recommended)</th><th>Merged</th></tr>
+  <tr>
+    <td><strong>Dispatcher mental load</strong></td>
+    <td>Lower. One mode, one set of actions, one set of states. Matches how the work actually happens — different fulfilment paths, different SLAs.</td>
+    <td>Higher. Every row needs a mode glance before any action. Food and grocery have different action vocabularies (food: "called restaurant"; grocery: "Instamart accepted").</td>
+  </tr>
+  <tr>
+    <td><strong>Cross-mode awareness</strong></td>
+    <td>Lost — but it wasn't a problem we were solving. Same customer's two orders rarely need joint action.</td>
+    <td>Gained — useful only if one dispatcher actually handles both modes simultaneously. Today that's not how the team operates.</td>
+  </tr>
+  <tr>
+    <td><strong>Action surfaces</strong></td>
+    <td>Each page only renders actions valid for its mode. Cleaner row UI; no conditional rendering per row.</td>
+    <td>Every action needs a mode-guard. Conditional UI per row. Easy to ship a bug where a food action shows on a grocery row.</td>
+  </tr>
+  <tr>
+    <td><strong>Volume asymmetry</strong></td>
+    <td>Grocery page may sit nearly empty for weeks. Fine — it's the right home when work shows up.</td>
+    <td>Food rows dominate the view; grocery rows scroll off easily. Worse for the low-volume mode, which is the one most likely to be missed.</td>
+  </tr>
+  <tr>
+    <td><strong>If we change our mind</strong></td>
+    <td>Easy to merge later — just compose the two queries.</td>
+    <td>Harder to split later — UI assumptions ("one queue") leak into components.</td>
+  </tr>
+</table>
+
+<div class="callout green">
+  <strong>Pivot point.</strong> If we hit a state where one dispatcher routinely toggles between <code>/</code> and <code>/grocery/dispatch</code> ten times in an hour, that's the signal to revisit. Until then, separate.
+</div>
+
+<h3>Mockup</h3>
+
+<div class="mock-label">Desktop · /grocery/dispatch</div>
+<div class="admin-frame">
+  <div class="admin-sidebar">
+    <div class="brand"><span class="bn">FoodtoIndia</span><span class="tag-admin">Admin</span></div>
+    <div class="sect">Ops</div>
+    <div class="sect sub">Food</div>
+    <div class="item sub"><span class="ic">🚚</span>Dispatch</div>
+    <div class="item sub"><span class="ic">📃</span>Orders</div>
+    <div class="item sub"><span class="ic">📥</span>Inbox</div>
+    <div class="item sub"><span class="ic">🛒</span>Abandoned Carts</div>
+    <div class="sect sub">Grocery</div>
+    <div class="item sub"><span class="ic">📃</span>Orders</div>
+    <div class="item sub active"><span class="ic">🚚</span>Dispatch</div>
+    <div class="sect">Reports</div>
+    <div class="item"><span class="ic">📈</span>Analytics</div>
+    <div class="item"><span class="ic">👥</span>Customers</div>
+  </div>
+  <div class="admin-main">
+    <div class="admin-top">
+      <span>Dashboard</span>
+      <span style="color:var(--ink-300);">›</span>
+      <span>Grocery</span>
+      <span style="color:var(--ink-300);">›</span>
+      <span class="crumb-active">Dispatch</span>
+      <span class="env-pill">Dev</span>
+    </div>
+    <div class="admin-body">
+      <h4>Grocery Dispatch <span class="badge ink" style="vertical-align:middle;margin-left:6px;">3 open</span></h4>
+      <div class="subtitle">Grocery orders in <code>created</code> — paid, awaiting fulfilment action. Today's grocery doc has no provider-state, slot, or contact pipeline yet; columns below reflect what actually exists. Richer columns are NEXT (see §5b).</div>
+      <div class="pillrow">
+        <span class="p on">Open (created)</span>
+        <span class="p">Last 24h</span>
+        <span class="p">All</span>
+      </div>
+      <table class="ftbl">
+        <thead><tr>
+          <th>Order</th><th>Placed</th><th>Source</th><th>Recipient · Store</th>
+          <th>Items</th><th>Total (USD)</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">pi_3Q…F9C12<br><span class="muted">adda das</span></td>
+            <td>14m ago</td>
+            <td><span class="badge grocery">Instamart</span></td>
+            <td>Mom · Annanagar East<br><span class="muted">store 8821 · T Nagar</span></td>
+            <td>12 items</td>
+            <td>$15.42</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>📋 ⋯</td>
+          </tr>
+          <tr>
+            <td class="mono">pi_3Q…8E7A<br><span class="muted">Priya M</span></td>
+            <td>1h 22m ago</td>
+            <td><span class="badge grocery">Instamart</span></td>
+            <td>Sister · Bandra W<br><span class="muted">store 1142 · Khar West</span></td>
+            <td>4 items</td>
+            <td>$5.55</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>📋 ⋯</td>
+          </tr>
+          <tr>
+            <td class="mono">pi_3Q…87C0<br><span class="muted">Anil R</span></td>
+            <td>3h ago</td>
+            <td><span class="badge ink">Blinkit</span></td>
+            <td>Dad · Banjara Hills<br><span class="muted">store BLK-22 · Jubilee Hills</span></td>
+            <td>8 items</td>
+            <td>$11.02</td>
+            <td><span class="badge ink">Created</span></td>
+            <td>📋 ⋯</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="legend"><strong>What's intentionally NOT shown.</strong> The v0.1 mockup had a "Provider state" column ("Instamart accepted", "Out for delivery"), a "Slot" column, and a recipient-WA-contact pill. None of those backing fields exist on grocery order docs today (verified against <code>website/lib/grocery-order.js:242-279</code>): the create-time doc has <code>status: "created"</code>, <code>store</code>, <code>recipient</code>, <code>lineItems</code>, <code>totals</code>, <code>chargedAmountCents</code>, <code>paymentIntent</code>, no scheduling slot, no provider-acceptance state, no WA contact pipeline. Showing them in the NOW dispatch would be cosplaying a richer fulfilment system than we have.</p>
+
+<div class="callout amber" id="dispatch-next">
+  <strong>§5b · Richer dispatch is NEXT, blocked on consumer-side fields.</strong> The columns we'd want for a real dispatch console — provider-acceptance state, slot, rider ETA, recipient-WA contact status — each depend on the consumer/finalize path stamping the field on the order doc (and the provider integration pushing updates back). Until that work lands, the NOW dispatch is just a "what's been paid and not yet cancelled" queue. The mockup with the richer columns lives in this doc's <a href="#changelog">v0.1 entry</a> as a future-state target. Build sequence:
+  <ol style="margin:6px 0 0;">
+    <li><strong>Consumer side first:</strong> add slot to checkout (today grocery is implicit-ASAP); stamp slot + chosen store on the order doc.</li>
+    <li><strong>Provider webhook:</strong> on Instamart status callback, write provider state to the order doc.</li>
+    <li><strong>Then admin:</strong> the NEXT columns light up automatically — the dispatch page just renders whatever's on the doc.</li>
+  </ol>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="data"><span class="n">6.</span>Data &amp; API plumbing</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<p>The food and grocery order docs live in <strong>different subcollections</strong>, in <strong>different currencies</strong>, with <strong>different doc-ID shapes</strong>. A single filtered route hides those differences but pays for it with per-row mode branching everywhere downstream. Cleaner: a sibling endpoint with its own cache, and a small shared helper for the parts that <em>are</em> the same (auth, fraud-user skip, per-user fetch batching).</p>
+
+<h3>The endpoint</h3>
+
+<p>Add <code>pages/api/grocery-orders.js</code> as a sibling of <code>pages/api/orders.js</code>. Same structure, different collection name and a different cache key:</p>
+
+<pre style="background:#0E1116;color:#E6EDF3;border-radius:8px;padding:14px 16px;font-family:'IBM Plex Mono','SF Mono',monospace;font-size:12.5px;overflow-x:auto;">// pages/api/grocery-orders.js — sketch
+const ordersSnapshot = await db
+  .collection('users')
+  .doc(userId)
+  .collection('grocery_orders')   // ← not 'orders'
+  .get();
+// ... same per-doc shape massage as /api/orders, then:
+//   - flatten, sort by createdAt desc
+//   - cache under global.groceryOrdersCache (separate key)
+//   - same 5 min TTL
+//   - same fraud-user skip via isValidUser(senderEmail)</pre>
+
+<p>This keeps the food code path 100% untouched. Grocery pages call <code>/api/grocery-orders</code>; nothing about the existing food fetches changes.</p>
+
+<h3>Cache invalidation — don't break the existing call sites</h3>
+
+<div class="callout amber">
+  <strong>Implementation hazard surfaced in code review.</strong> Today <code>global.ordersCache = null</code> is invalidated from <em>six</em> separate API routes (<code>cancel-order</code>, <code>store-credits</code>, four <code>whatsapp/*</code> routes). If we naively rename the global to a map (<code>global.ordersCache[type]</code>), every one of those six call sites breaks silently — admin will show stale rows on edit. Two acceptable options:
+  <ol>
+    <li><strong>(Recommended)</strong> Centralize the food cache as-is. Keep <code>global.ordersCache</code> exactly as today; the six invalidators don't change. Grocery introduces a <em>new</em> global, <code>global.groceryOrdersCache</code>, scoped only to <code>/api/grocery-orders</code>. No back-compat surface; no rename pressure on food code.</li>
+    <li>Introduce a tiny <code>lib/ordersCache.js</code> with <code>invalidate('food' | 'grocery' | 'all')</code> and refactor all six call sites to use it. Cleaner long-term, but a much bigger blast radius for what should be additive work. Defer to a follow-up unless we're touching those files anyway.</li>
+  </ol>
+  Going with option 1. Two globals, zero changes to existing invalidators. (Grocery has no admin mutation surfaces yet, so its invalidation list starts empty — easy to grow.)
+</div>
+
+<h3>The two new pages</h3>
+
+<p><code>pages/grocery/orders.js</code> and <code>pages/grocery/dispatch.js</code>. Both fetch <code>/api/grocery-orders</code>. Reuse <code>AdminShell</code>, <code>PageHeader</code>, <code>TableShell</code> verbatim. Column lists and the currency formatter are the only material differences. Dispatch filters client-side to <code>status === 'created'</code> (server returns the full list; the open-queue cut is presentation).</p>
+
+<h3 id="provider-store-fields">Provider source &amp; store area — what's on the doc today, what needs widening</h3>
+
+<p>The user asked for two ops-facing fields visible in the orders list and the detail page: <strong>provider source</strong> (Blinkit vs Instamart) and <strong>store location/area</strong>. Status against the actual code:</p>
+
+<table>
+  <tr><th>Field</th><th>Today</th><th>Cross-repo work needed</th></tr>
+  <tr>
+    <td><strong>Provider source</strong> (<code>source: "instamart" | "blinkit"</code>)</td>
+    <td>✅ Already captured. Stamped by the storefront on order create (<code>website/components/grocery/InstamartStorefront.js:648</code>, <code>BlinkitStorefront.js:804</code>), persisted on the temp doc, copied to the final order doc at <code>grocery-order.js:247</code>.</td>
+    <td>None. Admin can render it today.</td>
+  </tr>
+  <tr>
+    <td><strong>Store ID</strong> (<code>store.id</code>)</td>
+    <td>✅ Captured. <code>store: storeId ? { id: storeId } : null</code> on the storefront, persisted at <code>grocery-order.js:250</code>.</td>
+    <td>None.</td>
+  </tr>
+  <tr>
+    <td><strong>Store name + area/locality</strong></td>
+    <td>⚠️ <strong>Available upstream but dropped at persist time.</strong> The Blinkit normalize layer already returns <code>storeName</code>, <code>locality</code>, <code>city</code> (<code>website/lib/blinkitNormalize.js:102-108</code>); Instamart has store details on the location-resolve response. The storefront just doesn't include them in the <code>store</code> object it sends to the temp doc.</td>
+    <td><strong>One-line widening in both storefronts.</strong> See contract below.</td>
+  </tr>
+</table>
+
+<div class="callout green">
+  <strong>Cross-repo data contract — consumer side prereq.</strong> Both grocery storefronts in the website repo widen the <code>store</code> payload sent to <code>/api/grocery/orders/create</code> from <code>{ id }</code> to:
+  <pre style="background:#0E1116;color:#E6EDF3;border-radius:8px;padding:14px 16px;margin:8px 0 0;font-family:'IBM Plex Mono','SF Mono',monospace;font-size:12.5px;overflow-x:auto;">store: {
+  id: storeId,         // already sent
+  name: storeName,     // new — STORE_NAME constant (Instamart) / merchant.name (Blinkit)
+  area: locality,      // new — locality / neighborhood (Blinkit has it; Instamart needs the location-resolve response threaded through)
+  city: city || null,  // new — optional, populate when available
+}</pre>
+  Files to touch in the website repo:
+  <ul style="margin:8px 0 0;">
+    <li><code>website/components/grocery/InstamartStorefront.js:652</code> — widen the <code>store</code> object in the order-create payload. Thread <code>loc.store.locality</code> / <code>loc.store.city</code> through from the existing <code>select-location</code> response.</li>
+    <li><code>website/components/grocery/BlinkitStorefront.js:~804</code> — same widening. <code>storeName</code> + <code>locality</code> are already in scope from the normalize layer.</li>
+    <li><code>website/lib/grocery-order.js:154-176</code> (temp-order builder) and <code>:250</code> (order-doc builder) — already use <code>temp.store</code> verbatim, so the wider object passes through with no change.</li>
+  </ul>
+  <strong>No admin-side blocker.</strong> If the consumer-side widening ships at the same time as the admin pages, the area subtitle (<em>"store 8821 · T Nagar"</em>) shows up correctly from day one. If it ships later, the admin renders <em>"store 8821"</em> only — graceful degradation, no crash.
+</div>
+
+<h3>Currency rendering</h3>
+
+<p>Add a thin <code>formatMoney({ cents, currency })</code> helper in <code>lib/format.js</code> (or wherever it lands). Grocery passes <code>{ cents: order.chargedAmountCents, currency: 'usd' }</code> → <code>$15.42</code>. Food keeps using its existing INR formatter unchanged. <strong>Do not</strong> live-convert USD → INR in this PR; the FX rate question is its own decision (do we pick a snapshot rate at order time? Use today's rate? Show both?). Ops-facing INR equivalent is on the NEXT list (<a href="#plan">§7</a>).</p>
+
+<h3>Order detail page — what happens when a row is clicked</h3>
+
+<div class="callout green">
+  <strong>Order detail — minimal page in NOW (locked v0.4).</strong> Per code-review consensus: non-clickable rows in a list pattern read as broken, and grocery ops will need at least recipient, line items, total, Stripe PI link, notes, and store metadata to actually act on an order. So <code>/grocery/orders/[id]</code> ships in NOW as a <em>minimal</em> page — not a port of the full food detail surface.
+  <p style="margin:8px 0 0;"><strong>In scope (NOW):</strong></p>
+  <ul style="margin:4px 0 0;">
+    <li>Order header — ID (full <code>pi_*</code> with copy + Stripe Dashboard deep link), source badge, status, placed-at, total in USD.</li>
+    <li>Sender block — name, email.</li>
+    <li>Recipient block — name, phone, address.</li>
+    <li>Store metadata — provider, store ID, store name, area/city (whatever's on the doc once consumer-side widening lands; degrades to ID-only otherwise).</li>
+    <li>Line items table — name, qty, unit price, line total.</li>
+    <li>Totals breakdown — subtotal, delivery fee, tax, total.</li>
+    <li>Internal notes — reuse the existing <code>InternalNotes</code> component (mode-agnostic, just needs an order ref).</li>
+  </ul>
+  <p style="margin:8px 0 0;"><strong>Out of scope (NEXT):</strong> delivery-confirm modal, WA action panel, Stripe Radar risk panel, provider-state timeline. These all assume backing fields or workflows that don't exist on the grocery side yet.</p>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="plan"><span class="n">7.</span>Build plan</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<table class="now-table">
+  <tr><th>When</th><th>What</th><th>Why now / why later</th></tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>1.</strong> AdminShell sidebar — split Ops into Food / Grocery sub-groups (<a href="#nav">§2</a>).</td>
+    <td>Zero-risk UI-only change. Lands first so subsequent pages have a home.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>2.</strong> New <code>pages/api/grocery-orders.js</code> reading the <code>grocery_orders</code> subcollection, separate global cache (<a href="#data">§6</a>). Food <code>/api/orders</code> untouched.</td>
+    <td>Backend prereq for the two pages. Zero risk to food path.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>3.</strong> <code>formatMoney({ cents, currency })</code> helper. Food keeps INR formatter; grocery passes <code>'usd'</code>.</td>
+    <td>Single-line helper, prevents currency confusion at the call site.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>4.</strong> <code>/grocery/orders</code> page — list, status filter pills (Created / Cancelled only — actual statuses), columns per <a href="#orders">§4</a>.</td>
+    <td>The thing the user actually asked for.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>5.</strong> <code>/grocery/dispatch</code> page — open queue (status=created), thin column set per <a href="#dispatch">§5</a>. No provider-state / slot / WA columns.</td>
+    <td>Ships with Orders so ops have a focused "what needs action" view. Richer columns light up automatically when the consumer side adds the fields.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW</td>
+    <td><strong>6.</strong> <code>/grocery/orders/[id]</code> minimal detail page — header, sender, recipient, store metadata, line items, totals, internal notes. Wired as the click target from rows on both Orders and Dispatch.</td>
+    <td>Decided in v0.4 per code-review. Scope locked in §6 "Order detail — minimal page in NOW" callout. ~half-day surface; reuses existing primitives.</td>
+  </tr>
+  <tr class="now">
+    <td>NOW<br><span style="font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;">(website repo)</span></td>
+    <td><strong>7a.</strong> Widen <code>store</code> payload in both storefronts to include <code>name</code> + <code>area</code> per the <a href="#provider-store-fields">contract in §6</a>. <code>source</code> is already captured — no change needed there.</td>
+    <td>Lets the admin orders list and detail page show the store's neighborhood — useful for ops to disambiguate when a sender has multiple recipients in the same city. Graceful: admin works without it, just shows store ID alone.</td>
+  </tr>
+  <tr class="next">
+    <td>NEXT</td>
+    <td><strong>7b.</strong> Grow the minimal detail page into a full ops surface as needs arise — delivery-confirm modal, WA action panel, Stripe risk panel, provider-state timeline. Each panel lights up once its backing data/workflow lands.</td>
+    <td>Don't lift the whole food detail surface in one go. Add panels as the corresponding ops workflows prove out.</td>
+  </tr>
+  <tr class="next">
+    <td>NEXT</td>
+    <td><strong>8.</strong> Richer dispatch columns — provider state, slot, WA contact (<a href="#dispatch-next">§5b</a>). Blocked on consumer-side adding those fields to the order doc.</td>
+    <td>Admin can render only what's on the doc. The dependency runs through the consumer/finalize path + provider webhook.</td>
+  </tr>
+  <tr class="next">
+    <td>NEXT</td>
+    <td><strong>9.</strong> Ops-facing INR equivalent for grocery totals (snapshot rate at order time, stamped on the doc by the finalize path). Display as secondary on Orders + Dispatch.</td>
+    <td>Useful when ops is reconciling against Instamart's INR pricing. Needs an FX decision — snapshot vs live rate.</td>
+  </tr>
+  <tr class="next">
+    <td>NEXT</td>
+    <td><strong>10.</strong> Dispatch auto-refresh (60s polling). Match food dispatch behavior.</td>
+    <td>Trivial once both pages exist.</td>
+  </tr>
+  <tr class="later">
+    <td>LATER</td>
+    <td>Grocery-specific reports (abandoned carts, conversion funnel, provider-acceptance latency).</td>
+    <td>Volume too thin to justify dedicated dashboards. Revisit at ~50 orders/week.</td>
+  </tr>
+  <tr class="later">
+    <td>LATER</td>
+    <td>Grocery abandoned-cart emails (queue + send tooling under the existing Marketing nav).</td>
+    <td>Blocked on grocery cart-event tracking shipping in the consumer app.</td>
+  </tr>
+  <tr class="later">
+    <td>LATER</td>
+    <td>Grocery slot in Analytics, Customers, Attribution, Referral, Upsell.</td>
+    <td>Shared pages stay shared. Add a mode toggle to each only when grocery cohorts become statistically meaningful.</td>
+  </tr>
+  <tr class="defer">
+    <td>DEFER</td>
+    <td>Rename food paths to <code>/food/*</code>.</td>
+    <td>Mirrors consumer-side migration timing. Both move together or neither moves.</td>
+  </tr>
+  <tr class="defer">
+    <td>DEFER</td>
+    <td>Merging Slack notifications for grocery onto the same Cloud Function as food.</td>
+    <td>Called out in consumer plan v0.4.2 (<a href="../../../website/docs/grocery/separated-experiences-design.html">§9 NEXT PASS</a>) — touches the finalize critical path; not an admin-UI change.</td>
+  </tr>
+</table>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="open"><span class="n">8.</span>Open questions</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<ol>
+  <li>
+    <strong>Sidebar grouping label.</strong> Mockups show "Ops" top-level + "Food" / "Grocery" sub-labels. Alternative: drop "Ops" entirely and have two top-level sections "Food Ops" and "Grocery Ops." Cleaner hierarchy, but breaks parity with "Reports" / "Marketing" which stay single-level. Recommendation: keep as drawn.
+  </li>
+  <li>
+    <strong>Store Credits placement</strong> (called out in <a href="#nav">§2</a>). Hoist to a new "Account-level" section, or leave at the top of Ops above the per-mode split? Pick one before the sidebar PR.
+  </li>
+  <li>
+    <strong>Inbox.</strong> Is the inbox shared across modes (one inbox for all customer replies) or per-mode? Today it's a single page; grocery doesn't generate inbox traffic yet, so the question is theoretical. Leaving as today (food-only / shared) under Ops · Food until proven otherwise.
+  </li>
+  <li>
+    <strong>Dispatch column set.</strong> Real-screen review at ~1280px width — do the 7 NOW columns wrap, or do we trim "Total" (it's already on the Orders page)?
+  </li>
+  <li>
+    <strong>Order detail click target.</strong> <span style="background:#E6F4EA;color:#1E6F3E;font-weight:600;padding:1px 7px;border-radius:4px;font-size:11.5px;">RESOLVED v0.4</span> Minimal detail page in NOW. Scope locked in <a href="#data">§6</a>; build plan item 6.
+  </li>
+  <li>
+    <strong>Cache invalidation refactor.</strong> Centralize into <code>lib/ordersCache.js</code> now, or leave the two globals side-by-side and only refactor if/when grocery gets its own mutation endpoints? Going with side-by-side (option 1 in §6) — cheaper, no food-code blast radius. Open in case anyone disagrees.
+  </li>
+</ol>
+
+<!-- ──────────────────────────────────────────────────────────────── -->
+<h2 id="changelog"><span class="n">9.</span>Change log</h2>
+<!-- ──────────────────────────────────────────────────────────────── -->
+
+<p><strong>v0.5</strong> — NOW batch shipped on the <code>grocery</code> branch (commits <code>9440f03</code> + <code>df48905</code>). All six NOW items from §7 landed; see the top-of-doc callout for the file-by-file breakdown. <code>InternalNotes</code> gained a <code>collection</code> prop and <code>/api/order-notes</code> whitelists <code>orders</code> + <code>grocery_orders</code> — the only ripple into food code, and a backward-compatible one.</p>
+<p><strong>v0.4</strong> — Code-review follow-up. Two small fixes:</p>
+<ul>
+  <li><strong>Open Q #5 resolved</strong> — minimal grocery detail page ships in NOW. Non-clickable rows feel broken; ops needs at least recipient + line items + total + PI link + store metadata + notes to act. Scope locked in §6 "Order detail — minimal page in NOW" callout. Out of scope (NEXT): delivery-confirm modal, WA action panel, Stripe risk, provider-state timeline.</li>
+  <li><strong>Route table fixed</strong> — §3's <code>/grocery/orders/[id]</code> row had stale "Phase 2 / list-only in NOW" wording that contradicted the decision in §6. Updated to describe the minimal page that's actually shipping.</li>
+  <li>Build plan item 6 rewritten from "decide between three options" to "ship the minimal detail page." Item 7b reframed as "grow the detail page as ops workflows prove out" instead of conditional-on-NOW-choice.</li>
+</ul>
+<p><strong>v0.3</strong> — Provider source &amp; store area surfaced in admin per user ask. Three changes:</p>
+<ul>
+  <li>Added a <strong>Source</strong> column to both Orders and Dispatch mockups (badge: Instamart / Blinkit) — pulls from the <code>source</code> field already on the doc.</li>
+  <li>Store cells in mockups now show a subtitle like <em>"store 8821 · T Nagar"</em> with the area name alongside the store ID.</li>
+  <li>New <a href="#provider-store-fields">§6 sub-section</a> documents the cross-repo data contract: <code>source</code> is already captured; <code>store</code> needs widening from <code>{ id }</code> to <code>{ id, name, area, city }</code> in both storefronts. Added as NOW item 7a (website repo). Admin degrades gracefully if it ships later.</li>
+</ul>
+<p><strong>v0.2</strong> — Code-review pass corrected the backend section. Five concrete fixes:</p>
+<ul>
+  <li><strong>Storage location</strong> — grocery orders live in <code>users/{uid}/grocery_orders/</code>, not <code>users/{uid}/orders/</code>. The proposed <code>/api/orders?type=grocery</code> filter would have returned zero rows. Replaced with a sibling endpoint <code>/api/grocery-orders</code> on its own collection + cache. v0.1's "grocery is leaking into food" claim was the opposite of reality — grocery is currently invisible to ops, not leaking.</li>
+  <li><strong>Order ID shape</strong> — Stripe <code>pi_*</code> IDs, not 6-char hex. Dropped the v0.1 "G-" prefix scheme; abbreviate the PI ID and offer copy-full instead.</li>
+  <li><strong>Currency</strong> — grocery charges in USD (<code>chargedAmountCents</code>, <code>currency: "usd"</code>). Added a <code>formatMoney</code> helper and an ops-facing INR equivalent on the NEXT list.</li>
+  <li><strong>Dispatch columns trimmed to reality</strong> — the v0.1 mockup showed provider-acceptance state, slot, WA contact pills. None of those fields exist on the grocery order doc today. NOW dispatch becomes a thin "status=created" queue. The richer columns moved to §5b (NEXT, blocked on consumer-side adding the fields).</li>
+  <li><strong>Order detail fallback</strong> — v0.1 said "row clicks open the existing food detail page, degraded but functional." Wrong — food detail queries <code>orders</code>, not <code>grocery_orders</code>, so clicks would 404. Replaced with three concrete options (non-clickable, minimal detail page, drawer) and made it Open Q #5, scoped into the NOW table so the choice can't be skipped.</li>
+  <li><strong>Cache invalidation hazard</strong> — six existing routes call <code>global.ordersCache = null</code>. Renaming to a map breaks all of them silently. Recommendation: two separate globals (<code>ordersCache</code> + <code>groceryOrdersCache</code>) so food invalidators don't change at all.</li>
+</ul>
+<p><strong>v0.1</strong> — Initial draft. Nav restructure (Ops split), <code>/grocery/orders</code> + <code>/grocery/dispatch</code> scoped, dispatch separate-vs-merged decided (separate), backend filter approach defined, NOW/NEXT/LATER table. Backend assumptions about storage and doc shape turned out wrong — corrected in v0.2.</p>
+
+</div>
+</body>
+</html>
