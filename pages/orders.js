@@ -3,11 +3,16 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { withAuth } from '../lib/withAuth';
-import { STANDARD_RANGES, isCustomRangeLabel, rangeQueryParams } from '../lib/dateRange';
+import { isCustomRangeLabel, rangeQueryParams } from '../lib/dateRange';
 
-// The shared set plus All, which ops needs here to reach orders older than a
-// year without hand-picking a custom range.
-const ORDER_RANGES = [...STANDARD_RANGES.filter((r) => r !== 'Custom'), 'All', 'Custom'];
+// Deliberately short, and deliberately NOT derived from STANDARD_RANGES —
+// ops works the recent queue, and the wider presets invited full-history reads
+// that the old in-memory filtering made ruinously expensive.
+//
+// 'All' and 'Custom' stay for a reason: search filters only what has already
+// been fetched, so without them there is no way to look up an order older than
+// the window. A customer ringing about last month's delivery needs one of them.
+const ORDER_RANGES = ['Last 3d', 'All', 'Custom'];
 import { Banner, Button, Input, Loader } from '@cloudflare/kumo';
 import { Receipt, EnvelopeSimple, XCircle, PlusCircle, DownloadSimple, WhatsappLogo, Clock, Gift } from '@phosphor-icons/react';
 import { AdminShell } from '../components/layout/AdminShell';
