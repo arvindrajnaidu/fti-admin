@@ -145,7 +145,8 @@ export default function OrdersPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelOrder, setCancelOrder] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
-  const [cancelSendEmail, setCancelSendEmail] = useState(true);
+  const [cancelRefund, setCancelRefund] = useState('full'); // 'full' | 'none' | 'partial'
+  const [cancelRefundAmount, setCancelRefundAmount] = useState('');
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelResult, setCancelResult] = useState(null);
 
@@ -909,6 +910,8 @@ export default function OrdersPage() {
     setShowCancelModal(false);
     setCancelOrder(null);
     setCancelReason('');
+    setCancelRefund('full');
+    setCancelRefundAmount('');
     setCancelResult(null);
     setCancelSubmitting(false);
   };
@@ -921,6 +924,14 @@ export default function OrdersPage() {
       const items = cancelOrder.lineItems
         ? Object.values(cancelOrder.lineItems).map(i => ({ name: stripNotesSuffix(i.name), quantity: i.quantity }))
         : [];
+      const refund = cancelRefund === 'partial'
+        ? { amountCents: Math.round(parseFloat(cancelRefundAmount) * 100) }
+        : cancelRefund;
+      if (cancelRefund === 'partial' && !(refund.amountCents > 0)) {
+        setCancelResult({ success: false, message: 'Enter the partial refund amount in USD' });
+        setCancelSubmitting(false);
+        return;
+      }
       const res = await fetch('/api/cancel-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -928,7 +939,7 @@ export default function OrdersPage() {
           userId: cancelOrder.userId,
           orderId: cancelOrder.id,
           reason: cancelReason.trim(),
-          sendEmail: cancelSendEmail,
+          refund,
           orderData: {
             senderEmail: cancelOrder.senderEmail,
             senderName: cancelOrder.senderName,
@@ -942,7 +953,13 @@ export default function OrdersPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setCancelResult({ success: true, message: `Order cancelled${data.emailSent ? ' and email sent' : ''}` });
+        const rf = data.refund;
+        const refundMsg = rf?.status === 'refunded'
+          ? `, refunded ${(rf.currency || 'usd').toUpperCase()} ${(rf.amountCents / 100).toFixed(2)}`
+          : rf?.status === 'failed'
+            ? ` — REFUND FAILED (${rf.reason}); refund manually in Stripe`
+            : '';
+        setCancelResult({ success: rf?.status !== 'failed', message: `Order cancelled${data.emailSent ? ', email sent' : ''}${refundMsg}` });
         setOrders(prev => prev.map(o =>
           o.id === cancelOrder.id ? { ...o, status: 'cancelled', cancellationReason: cancelReason.trim() } : o
         ));
@@ -2191,15 +2208,38 @@ export default function OrdersPage() {
               className="mb-4 w-full resize-y rounded-[6px] border border-ink-200 bg-ink-0 px-3 py-2 text-[13px] text-ink-900 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
 
-            <label className="mb-4 flex cursor-pointer items-center gap-2 text-[13px] text-ink-700">
-              <input
-                type="checkbox"
-                checked={cancelSendEmail}
-                onChange={(e) => setCancelSendEmail(e.target.checked)}
-                className="h-4 w-4 rounded border-ink-300 text-accent focus:ring-accent"
-              />
-              Send cancellation email to customer
-            </label>
+            <div className="mb-4 rounded-[6px] border border-ink-200 bg-ink-0 p-3 text-[13px] text-ink-700">
+              <div className="mb-2 font-medium text-ink-900">Refund to the card</div>
+              {[
+                ['full', `Full refund${cancelOrder ? ` (${formatCurrency(cancelOrder.totalAmount, cancelOrder)})` : ''}`],
+                ['partial', 'Partial refund'],
+                ['none', 'No refund now (refund manually in Stripe later)'],
+              ].map(([value, label]) => (
+                <label key={value} className="mb-1 flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="cancelRefund"
+                    value={value}
+                    checked={cancelRefund === value}
+                    onChange={() => setCancelRefund(value)}
+                    className="h-4 w-4 border-ink-300 text-accent focus:ring-accent"
+                  />
+                  {label}
+                </label>
+              ))}
+              {cancelRefund === 'partial' ? (
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={cancelRefundAmount}
+                  onChange={(e) => setCancelRefundAmount(e.target.value)}
+                  placeholder="Amount in USD, e.g. 15.00"
+                  className="mt-2 w-48 rounded-[6px] border border-ink-200 bg-ink-0 px-3 py-1.5 text-[13px] text-ink-900 focus:border-accent focus:outline-none"
+                />
+              ) : null}
+              <div className="mt-2 text-[12px] text-ink-500">The customer is emailed in their order thread with the reason and the refund amount. Cancelling on Swiggy is still done by hand.</div>
+            </div>
 
             {cancelResult ? (
               <div className={`mb-4 rounded-[6px] px-3 py-2 text-[13px] ${cancelResult.success ? 'bg-success-weak text-success' : 'bg-danger-weak text-danger'}`}>
