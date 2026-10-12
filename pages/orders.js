@@ -789,7 +789,6 @@ export default function OrdersPage() {
         body: JSON.stringify({
           to: emailOrder.senderEmail,
           from: emailFrom,
-          subject: `Regarding: Order to ${emailOrder.recipient?.name || 'Recipient'}`,
           body: emailBody,
           orderRef,
         }),
@@ -1832,7 +1831,7 @@ export default function OrdersPage() {
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#444b57', marginBottom: '4px' }}>Subject</label>
               <input
                 type="text"
-                value={`Regarding: Order to ${emailOrder.recipient?.name || 'Recipient'}`}
+                value={`Re: Order #${emailOrder.id}${emailOrder.restaurantName ? ` - ${emailOrder.restaurantName}` : ''}`}
                 disabled
                 style={{
                   width: '100%',

@@ -1,5 +1,6 @@
 import { db, admin } from '../../lib/firebase';
 import { requireAuth } from '../../lib/withAuth';
+import { orderConversationSubject, orderReplyTo } from '../../lib/orderThread';
 export default async function handler(req, res) {
   const session = await requireAuth(req, res);
   if (!session) return;
@@ -9,14 +10,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { to, from, subject, body, orderRef } = req.body;
+    const { to, from, body, orderRef } = req.body;
 
     if (!to || !to.trim()) {
       return res.status(400).json({ error: 'Recipient email is required' });
     }
-    if (!subject || !subject.trim()) {
-      return res.status(400).json({ error: 'Subject is required' });
+    if (!orderRef?.orderId) {
+      return res.status(400).json({ error: 'orderRef.orderId is required' });
     }
+    // One subject per order, the References root, and a reply address that
+    // names the order: the same three ties the main app uses, so this email
+    // sits in the customer's existing thread and their reply finds the order.
+    const subject = orderConversationSubject(orderRef.orderId, orderRef.restaurantName);
     if (!body || !body.trim()) {
       return res.status(400).json({ error: 'Email body is required' });
     }
@@ -57,9 +62,10 @@ export default async function handler(req, res) {
     const { data: sendData, error: sendError } = await resend.emails.send({
       from: fromAddress,
       to: to.trim(),
-      subject: subject.trim(),
+      subject,
       html: fullHtml,
-      replyTo: from || 'support@foodtoindia.com',
+      replyTo: orderReplyTo(orderRef.orderId),
+      headers: { 'In-Reply-To': `<order-${orderRef.orderId}@foodtoindia.com>`, References: `<order-${orderRef.orderId}@foodtoindia.com>` },
     });
 
     if (sendError) {
@@ -71,7 +77,7 @@ export default async function handler(req, res) {
       const emailDoc = {
         from: fromAddress,
         to: [to.trim()],
-        subject: subject.trim(),
+        subject,
         html: fullHtml,
         text: body.trim(),
         receivedAt: admin.firestore.FieldValue.serverTimestamp(),
