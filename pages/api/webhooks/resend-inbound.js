@@ -19,9 +19,9 @@ function getRawBody(req) {
 // Fetch full email content from Resend API (webhook only sends metadata)
 // Uses Resend SDK (already installed) to avoid webpack bundling issues with https module
 async function fetchEmailContent(emailId) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const RESEND_API_KEY = process.env.RESEND_INBOUND_API_KEY || process.env.RESEND_API_KEY;
   if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not set — cannot fetch email body');
+    console.warn('RESEND_INBOUND_API_KEY / RESEND_API_KEY not set — cannot fetch email body');
     return null;
   }
 

@@ -1,5 +1,6 @@
 import { db } from '../../lib/firebase';
 import { requireAuth } from '../../lib/withAuth';
+import { syncReceivedEmails, inboundResendKey } from '../../lib/inboxSync';
 // Lazy-fetch email body from Resend API when webhook didn't store it.
 // More reliable than fetching in the webhook (no timing race, no Vercel quirks).
 //
@@ -10,9 +11,9 @@ import { requireAuth } from '../../lib/withAuth';
 //   { ok: false, code: 'EMPTY_RESPONSE' }           — Resend returned no text/html
 //   { ok: false, code: 'FETCH_THREW', message }     — Resend or Firestore call threw
 async function fetchAndCacheEmailBody(emailId) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const RESEND_API_KEY = inboundResendKey();
   if (!RESEND_API_KEY) {
-    console.error('Lazy-fetch skipped: RESEND_API_KEY not set in this runtime');
+    console.error('Lazy-fetch skipped: RESEND_INBOUND_API_KEY / RESEND_API_KEY not set in this runtime');
     return { ok: false, code: 'NO_API_KEY' };
   }
 
@@ -114,6 +115,19 @@ async function handleGet(req, res) {
   }
 
   // List emails with pagination
+  // First page only: pull anything Resend has that we do not, bounded so a
+  // slow Resend cannot hang the Inbox. Best effort - the list below renders
+  // whatever is stored either way.
+  if (!cursor) {
+    const key = inboundResendKey();
+    if (key) {
+      const { Resend } = require('resend');
+      const timeout = new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: 'timeout' }), 8000));
+      const sync = await Promise.race([syncReceivedEmails({ db, resend: new Resend(key) }), timeout]);
+      if (!sync.ok) console.warn('[inbox-sync] skipped:', sync.error);
+    }
+  }
+
   let query = db.collection('inbound-emails')
     .orderBy('receivedAt', 'desc')
     .limit(30);
