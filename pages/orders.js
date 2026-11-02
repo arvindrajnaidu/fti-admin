@@ -21,6 +21,7 @@ import { TableShell, Th, Tr, Td, Pill, Dash, IconButton } from '../components/da
 import { Modal } from '../components/layout/Modal';
 import { ConfirmDeliveryDetailsModal } from '../components/orders/ConfirmDeliveryDetailsModal';
 import { InternalNotes } from '../components/orders/InternalNotes';
+import { TrackingLinkForm } from '../components/orders/TrackingLinkForm';
 import useIsMobile from '../lib/useIsMobile';
 import { formatRecipientPhone } from '../lib/phoneFormat';
 import { stripNotesSuffix } from '../lib/orderItems';
@@ -1470,6 +1471,19 @@ export default function OrdersPage() {
                 )}
               </div>
             </div>
+
+            {/* Tracking link — same dispatch as the Slack "Submit link" shortcut */}
+            {(selectedOrder.status || 'pending') !== 'cancelled' && (
+              <TrackingLinkForm
+                key={selectedOrder.id}
+                order={selectedOrder}
+                onDispatched={(link) => {
+                  const update = (o) => ({ ...o, status: 'dispatched', tracking_link: link });
+                  setOrders(prev => prev.map(o => (o.id === selectedOrder.id ? update(o) : o)));
+                  setSelectedOrder(prev => update(prev));
+                }}
+              />
+            )}
 
             {/* Cancellation reason banner */}
             {selectedOrder.cancellationReason && (
